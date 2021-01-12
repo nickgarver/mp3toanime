@@ -3,8 +3,8 @@ const fileUpload = require('express-fileupload');
 const app = express();
 const {FFMpegProgress} = require('ffmpeg-progress-wrapper');
 const fs = require('fs')
-const got = require("got");
 
+const PORT = process.env.PORT || 5000;
 app.use(fileUpload());
 
 let progAmt = 50;
@@ -103,4 +103,8 @@ app.get('/download', (req, res) => {
   }
 });
 
-app.listen(5000, () => console.log('Server Started...'));
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static('client/build'));
+}
+
+app.listen(PORT, () => console.log('Server Started...'));
