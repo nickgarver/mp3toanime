@@ -17,6 +17,9 @@ let title = '';
 let tFrames = '';
 const gifCount = fs.readdirSync(`${__dirname}/client/public/anime`).length;
 
+if (!fs.existsSync(`${__dirname}/client/public/uploads`)){
+    fs.mkdirSync(`${__dirname}/client/public/uploads`);
+}
 // Upload Endpoint
 app.post('/upload', (req, res) => {
   if (req.files === null) {
