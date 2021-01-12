@@ -120,15 +120,17 @@ const FileUpload = () => {
        const url = window.URL.createObjectURL(new Blob([response.data]));
        const link = document.createElement('a');
        link.href = url;
-       link.setAttribute('download', 'mp3toanime.mp4'); //or any other extension
+       link.setAttribute('download', 'Mp3 to Anime.mp4'); //or any other extension
        document.body.appendChild(link);
        link.click();
+       setReady(false);
     });
   }
 
 
   return (
     <Fragment>
+      {!submitted && <Fragment>
       <div id='file-dropzone' style={{backgroundColor: color}} {...getRootProps({})}>
         <input form="myForm" id='customFile' {...getInputProps()} />
         <label className='custom-file-label' htmlFor="customFile">
@@ -138,6 +140,7 @@ const FileUpload = () => {
         </label>
         {!dropped && <FontAwesomeIcon icon={faCompactDisc} size="6x" />}
       </div>
+      </Fragment>}
 
       {dropped && <Fragment>
         <div id="info-box">
@@ -175,8 +178,8 @@ const FileUpload = () => {
             <a href="https://github.com/nickgarver">{message}</a>
           </Progress> }
 
-          {ready &&
-          <button onClick={getVideo} className='my-btn'> Download
+          {submitted &&
+          <button disabled={!ready} onClick={getVideo} className='my-btn dl-btn'> Download
             <FontAwesomeIcon className="button-space" icon={faArrowDown}/>
           </button> }
 

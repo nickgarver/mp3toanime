@@ -61,7 +61,7 @@ app.post('/upload', (req, res) => {
 
         process.once('end', (end) => {
           console.log('ffmpeg end');
-          progMsg = 'Your video is ready!';
+          progMsg = 'Your video is ready...';
           progAmt = 100;
           dlReady = true;
           //delete audio
@@ -96,8 +96,10 @@ app.get('/gifCount', (req, res) => {
 
 app.get('/download', (req, res) => {
   if (dlReady) {
-    let videoDownload = videoPath.toString();
-    res.download(videoDownload, 'beat video.mp4')
+    // let videoDownload = videoPath.toString();
+    res.download(videoPath, 'Mp3 to Anime.mp4', () => {
+      fs.unlinkSync(videoPath);
+    });
   }
 });
 
