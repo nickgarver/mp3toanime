@@ -1,0 +1,38 @@
+{
+	"name": "youtube-helpy",
+	"version": "0.1.0",
+	"private": true,
+	"dependencies": {
+		"@fortawesome/fontawesome-svg-core": "^1.2.32",
+		"@fortawesome/free-brands-svg-icons": "^5.15.1",
+		"@fortawesome/free-solid-svg-icons": "^5.15.1",
+		"@fortawesome/react-fontawesome": "^0.1.14",
+		"axios": "^0.18.0",
+		"immutable": "^4.0.0-rc.12",
+		"node-sass": "^5.0.0",
+		"react": "^16.8.6",
+		"react-audio-player": "^0.14.0",
+		"react-circular-progressbar": "^2.0.3",
+		"react-dom": "^16.8.6",
+		"react-dropzone": "^11.2.4",
+		"react-scripts": "2.1.8",
+		"react-scroll": "^1.8.1",
+		"react-tag-box": "^1.6.0"
+	},
+	"scripts": {
+		"start": "react-scripts start",
+		"build": "react-scripts build",
+		"test": "react-scripts test",
+		"eject": "react-scripts eject"
+	},
+	"eslintConfig": {
+		"extends": "react-app"
+	},
+	"browserslist": [
+		">0.2%",
+		"not dead",
+		"not ie <= 11",
+		"not op_mini all"
+	],
+	"proxy": "http://localhost:5000"
+}
