@@ -29,15 +29,15 @@ app.post('/upload', (req, res) => {
   }
   const file = req.files.file;
 
-  file.mv(`${__dirname}/client/public/uploads/${file.name}`, err => {
+  file.mv(`${__dirname}/client/public/uploads/audio_${process.pid}`, err => {
     if (err) {
       console.error(err);
       return res.status(500).send(err);
     }
 
-    audioPath = `${__dirname}/client/public/uploads/${file.name}`;
+    audioPath = `${__dirname}/client/public/uploads/audio_${process.pid}`;
     photoPath = `${__dirname}/client/public` + req.body.image;
-    videoPath = `${__dirname}/client/public/uploads/out.mp4`;
+    videoPath = `${__dirname}/client/public/uploads/out_${process.pid}.mp4`;
     title = req.body.title;
     res.json({
       fileName: file.name,
@@ -91,10 +91,34 @@ app.get('/progress', (req, res) => {
     });
 });
 
-app.get('/gifCount', (req, res) => {
+app.put('/gifCount', (req, res) => {
     res.json({
       gifCount: gifCount
     });
+});
+
+app.post('/cleanup', (req, res) => {
+  console.log('one time!');
+  res.json({
+    msg: 'true'
+  });
+  dlReady = false;
+  if (fs.existsSync(videoPath)) {
+    fs.unlink(videoPath, (err) => {
+      if (err) {
+        console.error(err)
+        return
+      }
+    })
+  }
+  if (fs.existsSync(audioPath)) {
+    fs.unlink(audioPath, (err) => {
+      if (err) {
+        console.error(err)
+        return
+      }
+    })
+  }
 });
 
 app.get('/download', (req, res) => {
@@ -110,4 +134,4 @@ if (process.env.NODE_ENV === 'production') {
   app.use(express.static('client/build'));
 }
 
-app.listen(PORT, () => console.log('Server Started...'));
+app.listen(PORT, () => console.log(`Server Started at ${PORT}`));

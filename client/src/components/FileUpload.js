@@ -8,21 +8,21 @@ import { faArrowUp, faArrowDown, faCompactDisc, faRandom, faSmileBeam } from '@f
 const FileUpload = () => {
   let imgPick;
   const [file, setFile] = useState({});
-  const [filename, setFilename] = useState('');
-  const [title, setTitle] = useState(filename);
+  const [title, setTitle] = useState('');
   const [image, setImage] = useState("");
   const [color, setColor] = useState("rgba(255, 255, 255, 0.0");
   const [message, setMessage] = useState('Upload Initialized');
   const [dropped, setDropped] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [ready, setReady] = useState(false);
+  const [cleaned, setCleaned] = useState(false);
   const [uploadPercentage, setUploadPercentage] = useState(0);
   const [gifCount, setGifCount] = useState(0);
   let progressRefresh;
 
   const { getRootProps, getInputProps, isDragActive, isDragReject} = useDropzone({
     maxFiles: 1, // number of files,
-    accept: "audio/mpeg",
+    accept: "audio/mpeg, audio/wav, audio/aiff",
     onDropAccepted: (acceptedFile) => {
       shuffleImage();
       setDropped(true);
@@ -32,13 +32,22 @@ const FileUpload = () => {
           preview: URL.createObjectURL(acceptedFile[0]),
         })
       );
-      setFilename(acceptedFile[0].name);
       setTitle(acceptedFile[0].name);
     },
     onDropRejected: () => {
         console.log("drop rejected, do nothing.");
     },
   })
+
+  window.addEventListener("unload", function(event) {
+    if (submitted && !cleaned) {
+      console.log('one time!');
+      const res = axios.post('/cleanup');
+      console.log(res.data.msg);
+      setCleaned(res.data.msg)
+    }
+  });
+
 
   async function getProgress() {
       const res = await axios.get('/progress');
@@ -52,7 +61,7 @@ const FileUpload = () => {
 
   useLayoutEffect(() => {
   async function countGifs() {
-    const response = await axios.get('/gifCount');
+    const response = await axios.put('/gifCount');
     setGifCount(response.data.gifCount)
   }
     countGifs()
@@ -80,7 +89,6 @@ const FileUpload = () => {
     e.preventDefault();
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('filename', filename);
     formData.append('title', title);
     formData.append('image', image);
 
@@ -103,7 +111,8 @@ const FileUpload = () => {
       progressRefresh = setInterval(getProgress, 500);
 
     } catch (err) {
-      if (err.response.status === 500) {
+      if (err.response.status === 500 || err.response.status === 400) {
+        clearInterval(progressRefresh);
         setMessage('There was a problem with the server');
       } else {
         setMessage(err.response.data.msg);
@@ -127,16 +136,15 @@ const FileUpload = () => {
     });
   }
 
-
   return (
     <Fragment>
       {!submitted && <Fragment>
       <div id='file-dropzone' style={{backgroundColor: color}} {...getRootProps({})}>
         <input form="myForm" id='customFile' {...getInputProps()} />
         <label className='custom-file-label' htmlFor="customFile">
-          {!isDragActive && !isDragReject && "Drop an mp3!"}
+          {!isDragActive && !isDragReject && "Drop a song here!"}
           {isDragActive && !isDragReject && "Drop it like it's hot!"}
-          {isDragActive && isDragReject && "Not an mp3"}
+          {isDragActive && isDragReject && "Please use wav, mp3 or aiff"}
         </label>
         {!dropped && <FontAwesomeIcon icon={faCompactDisc} size="6x" />}
       </div>
