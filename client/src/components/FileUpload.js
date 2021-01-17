@@ -32,7 +32,7 @@ const FileUpload = () => {
           preview: URL.createObjectURL(acceptedFile[0]),
         })
       );
-      setTitle(acceptedFile[0].name);
+      setTitle(acceptedFile[0].name.split(".", 1));
     },
     onDropRejected: () => {
         console.log("drop rejected, do nothing.");
@@ -47,7 +47,6 @@ const FileUpload = () => {
       setCleaned(res.data.msg)
     }
   });
-
 
   async function getProgress() {
       const res = await axios.get('/progress');
@@ -129,7 +128,7 @@ const FileUpload = () => {
        const url = window.URL.createObjectURL(new Blob([response.data]));
        const link = document.createElement('a');
        link.href = url;
-       link.setAttribute('download', 'Mp3 to Anime.mp4'); //or any other extension
+       link.setAttribute('download', `${title}.mp4`); //or any other extension
        document.body.appendChild(link);
        link.click();
        setReady(false);

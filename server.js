@@ -52,7 +52,7 @@ app.post('/upload', (req, res) => {
         });
 
         process.on('progress', (progress) => {
-          progAmt = Math.min(100, Math.round(50 + ((Number(progress.frame) / tFrames) *100) / 2));
+          progAmt = Math.min(99, Math.round(50 + ((Number(progress.frame) / tFrames) *100) / 2));
         });
 
         process.on('UnhandledPromiseRejectionWarning', (e) => {
