@@ -3,7 +3,7 @@ import Progress from './Progress';
 import { useDropzone } from "react-dropzone"
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowUp, faArrowDown, faCompactDisc, faRandom, faSmileBeam } from '@fortawesome/free-solid-svg-icons'
+import { faArrowUp, faArrowDown, faCompactDisc, faRandom, faHeart } from '@fortawesome/free-solid-svg-icons'
 
 const FileUpload = () => {
   let imgPick;
@@ -140,12 +140,12 @@ const FileUpload = () => {
       {!submitted && <Fragment>
       <div id='file-dropzone' style={{backgroundColor: color}} {...getRootProps({})}>
         <input form="myForm" id='customFile' {...getInputProps()} />
-        <label className='custom-file-label' htmlFor="customFile">
-          {!isDragActive && !isDragReject && "Drop a song here!"}
-          {isDragActive && !isDragReject && "Drop it like it's hot!"}
-          {isDragActive && isDragReject && "Please use wav, mp3 or aiff"}
-        </label>
-        {!dropped && <FontAwesomeIcon icon={faCompactDisc} size="6x" />}
+          <label className='custom-file-label' htmlFor="customFile">
+            {!isDragActive && !isDragReject && "Drop a song here!"}
+            {isDragActive && !isDragReject && "Drop it like it's hot!"}
+            {isDragActive && isDragReject && "Please use wav, mp3 or aiff"}
+          </label>
+          {!dropped && <FontAwesomeIcon icon={faCompactDisc} size="6x" />}
       </div>
       </Fragment>}
 
@@ -155,15 +155,15 @@ const FileUpload = () => {
           <Fragment>
             <form id="myForm" onSubmit={onSubmit}>
               <h2>
-                  <FontAwesomeIcon className="button-space" icon={faSmileBeam} size="1x"/>
+                  <FontAwesomeIcon className="button-space" icon={faHeart} size="1x"/>
                   MP3 to Anime
               </h2>
               <div>
-                <label className="input-label">Title</label>
+                <label className="input-label">Video Title</label>
                 <input form="myForm" className="form-control my-input" type="text" value={title} onChange={(e) => setTitle(e.target.value)} required/>
               </div>
               <div id="box">
-                <label className="input-label">Anime</label>
+                <label className="input-label">Anime Loop</label>
                   <div id="box-image"
                     className="d-flex align-items-center justify-content-center"
                     onClick={shuffleImage}
