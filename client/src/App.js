@@ -6,7 +6,7 @@ import { faDonate } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 const App = () => (
-  <div  className="App min-h-screen text-blue-200 d-flex align-items-center justify-content-center">
+  <div className="App min-h-screen text-blue-200 d-flex align-items-center justify-content-center">
     <FileUpload id="file-upload" />
     <footer>
       <div className="footer-info">
