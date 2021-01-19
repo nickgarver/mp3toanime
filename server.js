@@ -137,8 +137,8 @@ app.get('/download', (req, res) => {
 
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static('client/build'));
-  app.set('trust proxy', 1) // trust first proxy
-  session.cookie.secure = true // serve secure cookies
+  //app.set('trust proxy', 1) // trust first proxy
+  //session.cookie.secure = true // serve secure cookies
 }
 
 app.listen(PORT, () => console.log(`Server Started at ${PORT}`));
