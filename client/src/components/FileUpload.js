@@ -42,13 +42,13 @@ const FileUpload = () => {
     },
   })
 
-  window.addEventListener("pagehide", async function(event) {
+  window.addEventListener("pagehide", function(event) {
     if (submitted && !cleaned) {
       console.log('cleanup...');
-      const res = await axios.post('/cleanup');
+      const res = axios.post('/cleanup');
       setCleaned(res.data.msg);
     }
-  });
+  },{once: true});
 
   async function getProgress() {
       const res = await axios.get('/progress');

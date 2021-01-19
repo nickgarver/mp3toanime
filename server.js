@@ -5,6 +5,7 @@ const {FFMpegProgress} = require('ffmpeg-progress-wrapper');
 const fs = require('fs')
 
 const PORT = process.env.PORT || 5000;
+console.log(process.pid);
 app.use(fileUpload());
 
 let progAmt = 50;
@@ -17,11 +18,12 @@ let title = '';
 let tFrames = '';
 const gifCount = fs.readdirSync(`${__dirname}/client/public/anime`).length;
 
-if (!fs.existsSync(`${__dirname}/client/public/uploads`)){
-    fs.mkdirSync(`${__dirname}/client/public/uploads`);
+if (!fs.existsSync(`${__dirname}/uploads`)){
+    fs.mkdirSync(`${__dirname}/uploads`);
 }
 // Upload Endpoint
 app.post('/upload', (req, res) => {
+  console.log("uploads: " + fs.readdirSync(`${__dirname}/uploads`).length);
   if (req.files === null) {
     return res.status(400).json({
       msg: 'No file uploaded'
@@ -29,15 +31,15 @@ app.post('/upload', (req, res) => {
   }
   const file = req.files.file;
 
-  file.mv(`${__dirname}/client/public/uploads/audio_${process.pid}`, err => {
+  file.mv(`${__dirname}/uploads/audio_${process.pid}`, err => {
     if (err) {
       console.error(err);
       return res.status(500).send(err);
     }
 
-    audioPath = `${__dirname}/client/public/uploads/audio_${process.pid}`;
+    audioPath = `${__dirname}/uploads/audio_${process.pid}`;
     photoPath = `${__dirname}/client/public` + req.body.image;
-    videoPath = `${__dirname}/client/public/uploads/out_${process.pid}.mp4`;
+    videoPath = `${__dirname}/uploads/out_${process.pid}.mp4`;
     title = req.body.title;
     res.json({
       fileName: file.name,
@@ -55,8 +57,8 @@ app.post('/upload', (req, res) => {
           progAmt = Math.min(99, Math.round(50 + ((Number(progress.frame) / tFrames) *100) / 2));
         });
 
-        process.on('UnhandledPromiseRejectionWarning', (e) => {
-          progMsg = 'Error!';
+        process.on('error', (e) => {
+          progMsg = 'Error';
           progAmt = 0;
           dlReady = false;
           console.log('ffmpeg error: ' + e);
@@ -74,8 +76,6 @@ app.post('/upload', (req, res) => {
               return
             }
           });
-          //hand video back to user
-
         });
         await process.onDone();
       })();
@@ -104,6 +104,7 @@ app.post('/cleanup', (req, res) => {
   });
   dlReady = false;
   if (fs.existsSync(videoPath)) {
+    console.log("deleted video: " + videoPath );
     fs.unlink(videoPath, (err) => {
       if (err) {
         console.error(err)
@@ -112,6 +113,7 @@ app.post('/cleanup', (req, res) => {
     })
   }
   if (fs.existsSync(audioPath)) {
+    console.log("deleted audio: " + audioPath );
     fs.unlink(audioPath, (err) => {
       if (err) {
         console.error(err)
@@ -122,9 +124,8 @@ app.post('/cleanup', (req, res) => {
 });
 
 app.get('/download', (req, res) => {
-  if (dlReady) {
-    // let videoDownload = videoPath.toString();
-    res.download(videoPath, 'Mp3 to Anime.mp4', () => {
+  if (fs.existsSync(videoPath)) {
+    res.download(videoPath, 'tempName.mp4', () => {
       fs.unlinkSync(videoPath);
     });
   }
