@@ -1,7 +1,7 @@
 import React from 'react';
 import FileUpload from './components/FileUpload';
 import './App.css';
-import { faPaypal, faTwitter, faInstagram } from '@fortawesome/free-brands-svg-icons'
+import { faTwitter, faInstagram } from '@fortawesome/free-brands-svg-icons'
 import { faDonate } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 

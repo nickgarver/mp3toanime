@@ -39,12 +39,21 @@ const FileUpload = () => {
     },
   })
 
-  window.addEventListener("unload", function(event) {
+  window.addEventListener("unload", async function(event) {
     if (submitted && !cleaned) {
-      console.log('one time!');
-      const res = axios.post('/cleanup');
+      setCleaned(true);
+      console.log('unload');
+      const res = await axios.post('/cleanup');
       console.log(res.data.msg);
-      setCleaned(res.data.msg)
+    }
+  });
+
+  window.addEventListener("pagehide", async function(event) {
+    if (submitted && !cleaned) {
+      setCleaned(true);
+      console.log('pagehide');
+      const res = await axios.post('/cleanup');
+      console.log(res.data.msg);
     }
   });
 
@@ -125,7 +134,8 @@ const FileUpload = () => {
       method: 'GET',
       responseType: 'blob', // important
     }).then((response) => {
-       const url = window.URL.createObjectURL(new Blob([response.data], {type: 'video/mp4'}));
+      console.log(response.data);
+       const url = window.URL.createObjectURL(response.data);
        const link = document.createElement('a');
        link.href = url;
        link.setAttribute('download', `${title}.mp4`); //or any other extension
