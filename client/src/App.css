@@ -405,7 +405,7 @@ Audio {
     color: rgba(var(--pure-material-onsurface-rgb, 0, 0, 0), 0.38);
     background-color: rgba(var(--pure-material-onsurface-rgb, 0, 0, 0), 0.12);
     box-shadow: none;
-    cursor: initial;
+    cursor: not-allowed;
 }
 
 .my-btn:disabled::before {
@@ -417,6 +417,7 @@ Audio {
 }
 
 .dl-btn{
+  cursor: default;
   position: relative !important;
   margin: 15px !important;
 }

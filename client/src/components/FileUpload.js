@@ -4,6 +4,8 @@ import { useDropzone } from "react-dropzone"
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowUp, faArrowDown, faCompactDisc, faRandom, faHeart } from '@fortawesome/free-solid-svg-icons'
+import { faTwitter } from '@fortawesome/free-brands-svg-icons'
+
 
 const FileUpload = () => {
   let imgPick;
@@ -15,6 +17,7 @@ const FileUpload = () => {
   const [dropped, setDropped] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [ready, setReady] = useState(false);
+  const [downloaded, setDownloaded] = useState(false);
   const [cleaned, setCleaned] = useState(false);
   const [uploadPercentage, setUploadPercentage] = useState(0);
   const [gifCount, setGifCount] = useState(0);
@@ -39,21 +42,11 @@ const FileUpload = () => {
     },
   })
 
-  window.addEventListener("unload", async function(event) {
-    if (submitted && !cleaned) {
-      setCleaned(true);
-      console.log('unload');
-      const res = await axios.post('/cleanup');
-      console.log(res.data.msg);
-    }
-  });
-
   window.addEventListener("pagehide", async function(event) {
     if (submitted && !cleaned) {
-      setCleaned(true);
-      console.log('pagehide');
+      console.log('cleanup...');
       const res = await axios.post('/cleanup');
-      console.log(res.data.msg);
+      setCleaned(res.data.msg);
     }
   });
 
@@ -134,7 +127,6 @@ const FileUpload = () => {
       method: 'GET',
       responseType: 'blob', // important
     }).then((response) => {
-      console.log(response.data);
        const url = window.URL.createObjectURL(response.data);
        const link = document.createElement('a');
        link.href = url;
@@ -142,6 +134,7 @@ const FileUpload = () => {
        document.body.appendChild(link);
        link.click();
        setReady(false);
+       setDownloaded(true);
     });
   }
 
@@ -199,6 +192,11 @@ const FileUpload = () => {
           <button disabled={!ready} onClick={getVideo} className='my-btn dl-btn'> Download
             <FontAwesomeIcon className="button-space" icon={faArrowDown}/>
           </button> }
+
+          {downloaded &&
+          <a href="https://twitter.com/intent/tweet" className='my-btn'> Share
+            <FontAwesomeIcon className="button-space" icon={faTwitter}/>
+          </a> }
 
         </div>
       </Fragment>}

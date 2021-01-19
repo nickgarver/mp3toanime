@@ -1,9 +1,9 @@
 import React from 'react';
 import FileUpload from './components/FileUpload';
 import './App.css';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTwitter, faInstagram } from '@fortawesome/free-brands-svg-icons'
 import { faDonate } from '@fortawesome/free-solid-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 const App = () => (
   <div className="App min-h-screen text-blue-200 d-flex align-items-center justify-content-center">
