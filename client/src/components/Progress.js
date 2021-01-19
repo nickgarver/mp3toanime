@@ -17,7 +17,7 @@ const Progress = ({ percentage,message }) => {
           // Whether to use rounded or flat corners on the ends - can use 'butt' or 'round'
           strokeLinecap: 'rounded',
           // Customize transition animation
-          transition: 'stroke-dashoffset 0.5s ease 0s',
+          transition: 'stroke-dashoffset 0.2s ease 0s',
         },
         // Customize the circle behind the path, i.e. the "total progress"
         trail: {

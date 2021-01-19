@@ -3,136 +3,142 @@ const fileUpload = require('express-fileupload');
 const app = express();
 const {FFMpegProgress} = require('ffmpeg-progress-wrapper');
 const fs = require('fs')
-
+var session = require('express-session')
+const { v4: uuidv4 } = require('uuid');
 const PORT = process.env.PORT || 5000;
-console.log(process.pid);
 app.use(fileUpload());
-
-let progAmt = 50;
-let dlReady = false;
-let progMsg = 'Making a cute video.. :-)';
-let audioPath = '';
-let photoPath = '';
-let videoPath = '';
-let title = '';
-let tFrames = '';
-const gifCount = fs.readdirSync(`${__dirname}/client/public/anime`).length;
-
+app.use(session({
+  genid: function(req) {
+    return uuidv4() // use UUIDs for session IDs
+  },
+  resave: true,
+  saveUninitialized: true,
+  secret: 'keyboard cat',
+  cookie: {
+    secure: false,
+    maxAge: 60000
+  }
+}))
 if (!fs.existsSync(`${__dirname}/uploads`)){
     fs.mkdirSync(`${__dirname}/uploads`);
 }
+
 // Upload Endpoint
 app.post('/upload', (req, res) => {
-  console.log("uploads: " + fs.readdirSync(`${__dirname}/uploads`).length);
   if (req.files === null) {
-    return res.status(400).json({
-      msg: 'No file uploaded'
-    });
+    return res.status(400).json({ msg: 'No file uploaded'});
   }
+  req.session.progAmt = 50;
+  req.session.dlReady = false;
+  req.session.progMsg = 'Making cute video :-)';
+  req.session.audioPath = `${__dirname}/uploads/audio_${req.sessionID}`;
+  req.session.photoPath = `${__dirname}/client/public` + req.body.image;
+  req.session.videoPath = `${__dirname}/uploads/out_${req.sessionID}.mp4`;
+  req.session.save(function(err) {
+    // session saved
+  })
+  let tFrames = '';
   const file = req.files.file;
 
-  file.mv(`${__dirname}/uploads/audio_${process.pid}`, err => {
+  file.mv(`${__dirname}/uploads/audio_${req.sessionID}`, err => {
     if (err) {
-      console.error(err);
       return res.status(500).send(err);
     }
 
-    audioPath = `${__dirname}/uploads/audio_${process.pid}`;
-    photoPath = `${__dirname}/client/public` + req.body.image;
-    videoPath = `${__dirname}/uploads/out_${process.pid}.mp4`;
-    title = req.body.title;
-    res.json({
-      fileName: file.name,
-      filePath: `/uploads/${file.name}`
-    });
+    ( async () => {
+      const process = new FFMpegProgress(['-i', req.session.audioPath, '-ignore_loop', '0', '-i', req.session.photoPath, '-vf', "pad=ceil(iw/2)*2:ceil(ih/2)*2", '-shortest', '-strict', '-2', '-c:v', 'libx264', '-threads', '5', '-c:a', 'aac', '-b:a', '192k', '-pix_fmt', 'yuv420p', '-shortest', req.session.videoPath]);
+      process.once('details', (details) => {
+        tFrames = details.duration * details.fps;
+      });
 
-      ( async () => {
-        //const process = new FFMpegProgress(['-loop', '1', '-i' , photoPath , '-i', audioPath, '-c:v', 'libx264', '-tune', 'stillimage', '-c:a', 'aac', '-b:a', '192k', '-vf', "scale='iw-mod(iw,2)':'ih-mod(ih,2)',format=yuv420p", '-shortest', '-movflags', '+faststart', '-vf', 'scale=1280:720' , videoPath]);
-        const process = new FFMpegProgress(['-i', audioPath, '-ignore_loop', '0', '-i', photoPath, '-vf', "pad=ceil(iw/2)*2:ceil(ih/2)*2", '-shortest', '-strict', '-2', '-c:v', 'libx264', '-threads', '5', '-c:a', 'aac', '-b:a', '192k', '-pix_fmt', 'yuv420p', '-shortest', videoPath]);
-        process.once('details', (details) => {
-          tFrames = details.duration * details.fps;
-        });
+      process.on('progress', (progress) => {
+        req.session.progAmt = Math.min(99, Math.round(50 + ((Number(progress.frame) / tFrames) *100) / 2));
+        req.session.save(function(err) {
+          // session saved
+        })
+      });
 
-        process.on('progress', (progress) => {
-          progAmt = Math.min(99, Math.round(50 + ((Number(progress.frame) / tFrames) *100) / 2));
-        });
+      process.on('uncaughtException', (e) => {
+        req.session.progMsg = 'Error';
+        req.session.progAmt = 0;
+        req.session.dlReady = false;
+        console.log('ffmpeg uncaughtException: ' + e);
+      });
 
-        process.on('error', (e) => {
-          progMsg = 'Error';
-          progAmt = 0;
-          dlReady = false;
-          console.log('ffmpeg error: ' + e);
+      process.once('end', (end) => {
+        console.log('ffmpeg end');
+        req.session.progMsg = 'Your video is ready!';
+        req.session.progAmt = 100;
+        req.session.dlReady = true;
+        req.session.save(function(err) {
+          // session saved
+        })
+        res.end();
+        //delete audio
+        fs.unlink(req.session.audioPath, (err) => {
+          if (err) {
+            console.error(err)
+            return
+          }
         });
-
-        process.once('end', (end) => {
-          console.log('ffmpeg end');
-          progMsg = 'Your video is ready...';
-          progAmt = 100;
-          dlReady = true;
-          //delete audio
-          fs.unlink(audioPath, (err) => {
-            if (err) {
-              console.error(err)
-              return
-            }
-          });
-        });
-        await process.onDone();
-      })();
+      });
+      await process.onDone();
+    })();
   });
 
 });
 
 app.get('/progress', (req, res) => {
-    res.json({
-      progAmt: progAmt,
-      progMsg: progMsg,
-      dlReady: dlReady
-    });
+  console.log(req.session.progAmt);
+  res.json({
+    progAmt: req.session.progAmt,
+    progMsg: req.session.progMsg,
+    dlReady: req.session.dlReady
+  });
 });
 
 app.put('/gifCount', (req, res) => {
-    res.json({
-      gifCount: gifCount
-    });
+  const gifCount = fs.readdirSync(`${__dirname}/client/public/anime`).length;
+  res.json({
+    gifCount: gifCount
+  });
 });
 
 app.post('/cleanup', (req, res) => {
-  console.log('one time!');
-  res.json({
-    msg: 'true'
-  });
-  dlReady = false;
-  if (fs.existsSync(videoPath)) {
-    console.log("deleted video: " + videoPath );
-    fs.unlink(videoPath, (err) => {
+  req.session.dlReady = false;
+  if (fs.existsSync(req.session.videoPath)) {
+    console.log("deleted video: " + req.session.videoPath );
+    fs.unlink(req.session.videoPath, (err) => {
       if (err) {
         console.error(err)
         return
       }
     })
   }
-  if (fs.existsSync(audioPath)) {
-    console.log("deleted audio: " + audioPath );
-    fs.unlink(audioPath, (err) => {
+  if (fs.existsSync(req.session.audioPath)) {
+    console.log("deleted audio: " + req.session.audioPath );
+    fs.unlink(req.session.audioPath, (err) => {
       if (err) {
         console.error(err)
         return
       }
     })
   }
+  res.send('cleaned');
 });
 
 app.get('/download', (req, res) => {
-  if (fs.existsSync(videoPath)) {
-    res.download(videoPath, 'tempName.mp4', () => {
-      fs.unlinkSync(videoPath);
+  if (fs.existsSync(req.session.videoPath) && req.session.dlReady) {
+    res.download(req.session.videoPath, 'tempName.mp4', () => {
+      fs.unlinkSync(req.session.videoPath);
     });
   }
 });
 
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static('client/build'));
+  app.set('trust proxy', 1) // trust first proxy
+  session.cookie.secure = true // serve secure cookies
 }
 
 app.listen(PORT, () => console.log(`Server Started at ${PORT}`));

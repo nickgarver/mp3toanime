@@ -13,12 +13,11 @@ const FileUpload = () => {
   const [title, setTitle] = useState('');
   const [image, setImage] = useState("");
   const [color, setColor] = useState("rgba(255, 255, 255, 0.0");
-  const [message, setMessage] = useState('Upload Initialized');
+  const [message, setMessage] = useState('Upload Started!');
   const [dropped, setDropped] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [ready, setReady] = useState(false);
   const [downloaded, setDownloaded] = useState(false);
-  const [cleaned, setCleaned] = useState(false);
   const [uploadPercentage, setUploadPercentage] = useState(0);
   const [gifCount, setGifCount] = useState(0);
   let progressRefresh;
@@ -42,22 +41,18 @@ const FileUpload = () => {
     },
   })
 
-  window.addEventListener("pagehide", function(event) {
-    if (submitted && !cleaned) {
-      console.log('cleanup...');
-      const res = axios.post('/cleanup');
-      setCleaned(res.data.msg);
-    }
-  },{once: true});
+  // window.addEventListener("pagehide", function(event) {
+  //   axios.post('/cleanup');
+  // },{once: true});
 
   async function getProgress() {
-      const res = await axios.get('/progress');
-      if (res.data.dlReady || res.data.progMsg === 'Error') {
-        clearInterval(progressRefresh);
-      }
-      setUploadPercentage(res.data.progAmt);
-      setMessage(res.data.progMsg);
-      setReady(res.data.dlReady);
+    const res = await axios.get('/progress');
+    if (res.data.dlReady || res.data.progMsg === 'Error') {
+      clearInterval(progressRefresh);
+    }
+    setUploadPercentage(res.data.progAmt);
+    setMessage(res.data.progMsg);
+    setReady(res.data.dlReady);
   }
 
   useLayoutEffect(() => {
@@ -90,7 +85,6 @@ const FileUpload = () => {
     e.preventDefault();
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('title', title);
     formData.append('image', image);
 
     try {
@@ -101,21 +95,19 @@ const FileUpload = () => {
         onUploadProgress: progressEvent => {
           //start upload
           setMessage('Audio Uploading')
-          setUploadPercentage(
-            parseInt(
-              Math.round(((progressEvent.loaded * 100) / progressEvent.total) / 2)
-            )
-          );
+          setUploadPercentage(Math.min(99, parseInt(Math.round(((progressEvent.loaded * 100) / progressEvent.total) / 2))));
+          console.log(Math.min(99, parseInt(Math.round(((progressEvent.loaded * 100) / progressEvent.total) / 2))));
+          if (progressEvent.loaded === progressEvent.total) {
+            progressRefresh = setInterval(getProgress, 200);
+          }
         }
       });
-      //start timer
-      progressRefresh = setInterval(getProgress, 500);
-
     } catch (err) {
       if (err.response.status === 500 || err.response.status === 400) {
         clearInterval(progressRefresh);
         setMessage('There was a problem with the server');
       } else {
+        clearInterval(progressRefresh);
         setMessage(err.response.data.msg);
       }
     }
@@ -144,7 +136,7 @@ const FileUpload = () => {
       <div id='file-dropzone' style={{backgroundColor: color}} {...getRootProps({})}>
         <input form="myForm" id='customFile' {...getInputProps()} />
           <label className='custom-file-label' htmlFor="customFile">
-            {!isDragActive && !isDragReject && "Drop a song here!"}
+            {!isDragActive && !isDragReject && "Drop audio here!"}
             {isDragActive && !isDragReject && "Drop it like it's hot!"}
             {isDragActive && isDragReject && "Please use wav, mp3 or aiff"}
           </label>
@@ -192,9 +184,8 @@ const FileUpload = () => {
           <button disabled={!ready} onClick={getVideo} className='my-btn dl-btn'> Download
             <FontAwesomeIcon className="button-space" icon={faArrowDown}/>
           </button> }
-
           {downloaded &&
-          <a href="https://twitter.com/intent/tweet" className='my-btn'> Share
+          <a href="https://twitter.com/intent/tweet?hashtags=mp3anime&text=i%20💖" className='my-btn'> Share
             <FontAwesomeIcon className="button-space" icon={faTwitter}/>
           </a> }
 

@@ -57,7 +57,7 @@ body {
 }
 
 #info-box{
-  z-index: 2;
+  z-index: 20;
   position: relative;
   width: 375px;
   /* min-height: 375px; */
@@ -423,7 +423,7 @@ Audio {
 }
 
 footer {
-  z-index: 100;
+  z-index: 1;
   position: absolute;
   bottom: 0px;
   width: 100%;
