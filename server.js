@@ -27,7 +27,7 @@ app.use(require('express-session')({
   secret: 'keyboard cat',
   cookie: {
     maxAge: 1000 * 60 * 15, // 10 min
-    secure: false
+    secure: true
   },
   store: store,
   resave: true,
@@ -154,7 +154,7 @@ if (process.env.NODE_ENV === 'production') {
   app.use(express.static('client/build'));
   //do this if i buy ssl ticket
   // app.set('trust proxy', 1) // trust first proxy
-  session.cookie.secure = true; // serve secure cookies
+  // session.cookie.secure = true; // serve secure cookies
 }
 
 app.listen(PORT, () => console.log(`Server Started at ${PORT}`));
