@@ -1,6 +1,7 @@
 const fileUpload = require('express-fileupload');
 const {FFMpegProgress} = require('ffmpeg-progress-wrapper');
-const fs = require('fs')
+const fs = require('fs');
+const findRemoveSync = require('find-remove');
 const express = require('express');
 var session = require('express-session')
 var MongoDBStore = require('connect-mongodb-session')(session);
@@ -34,10 +35,6 @@ app.use(require('express-session')({
 }));
 
 app.use(fileUpload());
-
-if (!fs.existsSync(`${__dirname}/uploads`)){
-    fs.mkdirSync(`${__dirname}/uploads`);
-}
 
 // Upload Endpoint
 app.post('/upload', (req, res) => {
@@ -133,50 +130,6 @@ app.get('/gifCount', (req, res) => {
   });
 });
 
-// do this when user is timed out
-// app.get('/cleanup', (req, res) => {
-//   switch (req.session.cleaned) {
-//     case true:
-//       console.log("cleaned");
-//       res.send('cleaned');
-//       break;
-//     case false:
-//       req.session.cleaned = true;
-//       req.session.dlReady = false;
-//       if (fs.existsSync(req.session.videoPath)) {
-//         console.log("deleted video: " + req.session.videoPath );
-//         fs.unlink(req.session.videoPath, (err) => {
-//           if (err) {
-//             console.error(err)
-//             return
-//           }
-//         })
-//       }
-//       if (fs.existsSync(req.session.audioPath)) {
-//         console.log("deleted audio: " + req.session.audioPath );
-//         fs.unlink(req.session.audioPath, (err) => {
-//           if (err) {
-//             console.error(err)
-//             return
-//           }
-//         })
-//       }
-//       // req.session.destroy(function(err) {
-//       //   // cannot access session here
-//       // })
-//       console.log("dirty");
-//       res.send('dirty');
-//       break;
-//     case undefined:
-//       console.log('clean undefined');
-//       res.send('clean undefined');
-//       break;
-//     default:
-//       console.log('clean else');
-//       res.send('clean else');
-//   }
-// });
-
 app.get('/download', (req, res) => {
   if (fs.existsSync(req.session.videoPath) && req.session.dlReady) {
     res.download(req.session.videoPath, 'tempName.mp4', () => {
@@ -184,6 +137,16 @@ app.get('/download', (req, res) => {
     });
   }
 });
+
+if (!fs.existsSync(`${__dirname}/uploads`)){
+    fs.mkdirSync(`${__dirname}/uploads`);
+}
+
+//Write "Hello" every 500 milliseconds:
+var myInt = setInterval(function () {
+  var result = findRemoveSync(`${__dirname}/uploads`, {extensions: ['.mp4', '.mp3', '.aif', '.aiff', '.wav'], limit: 100, age: {seconds: 1000*10}});
+  console.log(result);
+}, 1000*10);
 
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static('client/build'));

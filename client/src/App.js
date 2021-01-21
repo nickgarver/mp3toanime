@@ -8,7 +8,7 @@ const helpMsg = "Hello, welcome to Mp3 Anime!\n\nThis is a shitty app internetbo
 
 const App = () => (
   <div className="App min-h-screen text-blue-200 d-flex align-items-center justify-content-center">
-    <a help-msg={helpMsg} className="help-btn"><FontAwesomeIcon className="socials-icn" icon={faQuestionCircle} /></a>
+    <button help-msg={helpMsg} className="help-btn"><FontAwesomeIcon className="socials-icn" icon={faQuestionCircle} /></button>
     <FileUpload id="file-upload" />
     <footer>
       <div className="footer-info">
