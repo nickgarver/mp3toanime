@@ -28,6 +28,7 @@
   },
   "homepage": "https://mp3toanime.herokuapp.com/",
   "dependencies": {
+    "connect-mongodb-session": "^2.4.1",
     "express": "^4.17.1",
     "express-fileupload": "^1.2.0",
     "express-session": "^1.17.1",

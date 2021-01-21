@@ -3,7 +3,7 @@ import Progress from './Progress';
 import { useDropzone } from "react-dropzone"
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowUp, faArrowDown, faCompactDisc, faRandom, faHeart } from '@fortawesome/free-solid-svg-icons'
+import { faArrowUp, faArrowDown, faCompactDisc, faRandom, faHeart, faFire, faSadCry } from '@fortawesome/free-solid-svg-icons'
 import { faTwitter } from '@fortawesome/free-brands-svg-icons'
 
 
@@ -41,10 +41,6 @@ const FileUpload = () => {
     },
   })
 
-  // window.addEventListener("pagehide", function(event) {
-  //   axios.post('/cleanup');
-  // },{once: true});
-
   async function getProgress() {
     const res = await axios.get('/progress');
     if (res.data.dlReady || res.data.progMsg === 'Error') {
@@ -57,7 +53,7 @@ const FileUpload = () => {
 
   useLayoutEffect(() => {
   async function countGifs() {
-    const response = await axios.put('/gifCount');
+    const response = await axios.get('/gifCount');
     setGifCount(response.data.gifCount)
   }
     countGifs()
@@ -92,24 +88,21 @@ const FileUpload = () => {
         headers: {
           'Content-Type': 'multipart/form-data'
         },
+        timeout: 120000, //2 min
         onUploadProgress: progressEvent => {
           //start upload
           setMessage('Audio Uploading')
           setUploadPercentage(Math.min(99, parseInt(Math.round(((progressEvent.loaded * 100) / progressEvent.total) / 2))));
-          console.log(Math.min(99, parseInt(Math.round(((progressEvent.loaded * 100) / progressEvent.total) / 2))));
           if (progressEvent.loaded === progressEvent.total) {
             progressRefresh = setInterval(getProgress, 200);
           }
         }
       });
     } catch (err) {
-      if (err.response.status === 500 || err.response.status === 400) {
         clearInterval(progressRefresh);
-        setMessage('There was a problem with the server');
-      } else {
-        clearInterval(progressRefresh);
-        setMessage(err.response.data.msg);
-      }
+        setUploadPercentage(0);
+        setReady(false);
+        setMessage('Upload Timed out');
     }
   };
 
@@ -137,10 +130,12 @@ const FileUpload = () => {
         <input form="myForm" id='customFile' {...getInputProps()} />
           <label className='custom-file-label' htmlFor="customFile">
             {!isDragActive && !isDragReject && "Drop audio here!"}
-            {isDragActive && !isDragReject && "Drop it like it's hot!"}
-            {isDragActive && isDragReject && "Please use wav, mp3 or aiff"}
+            {isDragActive && !isDragReject &&  "Drop it like it's hot!"}
+            {isDragActive && isDragReject &&   "Please use mp3, wav, or aiff"}
           </label>
-          {!dropped && <FontAwesomeIcon icon={faCompactDisc} size="6x" />}
+          {!isDragActive && !isDragReject && <FontAwesomeIcon icon={faCompactDisc} size="6x" />}
+          {isDragActive && !isDragReject &&  <FontAwesomeIcon icon={faFire} size="6x" />}
+          {isDragActive && isDragReject &&   <FontAwesomeIcon icon={faSadCry} size="6x" />}
       </div>
       </Fragment>}
 
