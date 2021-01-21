@@ -429,10 +429,13 @@ footer {
   width: 100%;
   height: 100px;
   padding: 20px;
+  padding-left: 0px;
+  padding-right: 0px;
   font-family: 'Roboto', sans-serif;
   font-weight: 600;
   text-decoration: none;
   color: #FFFFFF;
+  overflow: hidden;
 }
 
 footer a {
@@ -458,6 +461,10 @@ footer a:hover{
   display: flex;
   justify-content: flex-end;
   align-items: flex-end;
+}
+
+.footer-info > a {
+  margin-right: 1rem;
 }
 
 .footer-socials{
@@ -558,7 +565,7 @@ footer a:hover{
   transition-duration: 0.1s;
 }
 
-.help-btn:hover{
+.help-btn:hover, .help-btn:active{
   opacity: 1;
   font-size: 30px;
   color: #fefefe;
@@ -605,7 +612,7 @@ footer a:hover{
 }
 
 /* Show tooltip content on hover */
-[help-msg]:hover:before  {
+[help-msg]:hover:before, [help-msg]:active:before  {
   position: fixed;
   display: flex;
   justify-content: center;
