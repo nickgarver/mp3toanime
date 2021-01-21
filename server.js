@@ -26,7 +26,7 @@ app.use(require('express-session')({
   },
   secret: 'keyboard cat',
   cookie: {
-    maxAge: 1000 * 60 * 10, // 10 min
+    maxAge: 1000 * 60 * 15, // 10 min
     secure: false
   },
   store: store,
@@ -48,6 +48,7 @@ app.post('/upload', (req, res) => {
   req.session.audioPath = `${__dirname}/uploads/audio_${req.sessionID}`;
   req.session.photoPath = `${__dirname}/client/public` + req.body.image;
   req.session.videoPath = `${__dirname}/uploads/out_${req.sessionID}.mp4`;
+  req.session.touch();
   req.session.save(function(err) {
     if (err) {
       console.log(err);
@@ -87,6 +88,7 @@ app.post('/upload', (req, res) => {
         req.session.progMsg = 'Your video is ready!';
         req.session.progAmt = 100;
         req.session.dlReady = true;
+        req.session.touch();
         req.session.save(function(err) {
           if (err) {
             console.log(err);
@@ -131,6 +133,7 @@ app.get('/gifCount', (req, res) => {
 });
 
 app.get('/download', (req, res) => {
+  req.session.touch();
   if (fs.existsSync(req.session.videoPath)) {
     res.download(req.session.videoPath, 'tempName.mp4', () => {
       fs.unlinkSync(req.session.videoPath);
@@ -144,14 +147,14 @@ if (!fs.existsSync(`${__dirname}/uploads`)){
 
 //Write "Hello" every 500 milliseconds:
 var myInt = setInterval(function () {
-  var result = findRemoveSync(`${__dirname}/uploads`, {extensions: ['.mp4', '.mp3', '.aif', '.aiff', '.wav'], limit: 100, age: {seconds: 1000*10}});
-}, 1000*10);
+  var result = findRemoveSync(`${__dirname}/uploads`, {extensions: ['.mp4', '.mp3', '.aif', '.aiff', '.wav'], limit: 100, age: {seconds: 1000*15}});
+}, 1000*15);
 
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static('client/build'));
   //do this if i buy ssl ticket
-  //app.set('trust proxy', 1) // trust first proxy
-  //session.cookie.secure = true // serve secure cookies
+  // app.set('trust proxy', 1) // trust first proxy
+  session.cookie.secure = true; // serve secure cookies
 }
 
 app.listen(PORT, () => console.log(`Server Started at ${PORT}`));
