@@ -131,7 +131,7 @@ app.get('/gifCount', (req, res) => {
 });
 
 app.get('/download', (req, res) => {
-  if (fs.existsSync(req.session.videoPath) && req.session.dlReady) {
+  if (fs.existsSync(req.session.videoPath)) {
     res.download(req.session.videoPath, 'tempName.mp4', () => {
       fs.unlinkSync(req.session.videoPath);
     });
@@ -145,7 +145,6 @@ if (!fs.existsSync(`${__dirname}/uploads`)){
 //Write "Hello" every 500 milliseconds:
 var myInt = setInterval(function () {
   var result = findRemoveSync(`${__dirname}/uploads`, {extensions: ['.mp4', '.mp3', '.aif', '.aiff', '.wav'], limit: 100, age: {seconds: 1000*10}});
-  console.log(result);
 }, 1000*10);
 
 if (process.env.NODE_ENV === 'production') {
