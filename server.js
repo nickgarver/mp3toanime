@@ -152,9 +152,12 @@ var myInt = setInterval(function () {
 
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static('client/build'));
-  //do this if i buy ssl ticket
-  // app.set('trust proxy', 1) // trust first proxy
-  // session.cookie.secure = true; // serve secure cookies
+  app.use((req, res, next) => {
+    if (req.header('x-forwarded-proto') !== 'https')
+      res.redirect(`https://${req.header('host')}${req.url}`)
+    else
+      next()
+  })
 }
 
 app.listen(PORT, () => console.log(`Server Started at ${PORT}`));

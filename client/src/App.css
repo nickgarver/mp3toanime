@@ -2,7 +2,8 @@
 
 html, #root{
   height: -webkit-fill-available;
-  width: 100vw
+  width: 100vw;
+  outline-color: #F37FB5;
 }
 .App {
   text-align: center;
@@ -16,6 +17,7 @@ html, #root{
   min-height: 100vh;
   min-height: -webkit-fill-available;
   width: 100vw;
+  outline-color: #F37FB5;
 }
 
 /* file upload */
