@@ -2,6 +2,7 @@ const fileUpload = require('express-fileupload');
 const {FFMpegProgress} = require('ffmpeg-progress-wrapper');
 const fs = require('fs');
 const findRemoveSync = require('find-remove');
+const { forceDomain } = require('forcedomain');
 const express = require('express');
 var session = require('express-session')
 var MongoDBStore = require('connect-mongodb-session')(session);
@@ -21,12 +22,12 @@ store.on('error', function(error) {
 });
 
 if (process.env.NODE_ENV === 'production') {
-  console.log('production');
-  if (req.header('x-forwarded-proto') !== 'https')
-    res.redirect(`https://www.mp3ani.me`)
-
   app.use(express.static('client/build'));
-
+  app.use(forceDomain({
+    hostname: 'www.mp3ani.me',
+    port: PORT,
+    protocol: 'https'
+  }));
   app.use(require('express-session')({
     genid: function(req) {
       return uuidv4() // use UUIDs for session IDs
@@ -42,7 +43,6 @@ if (process.env.NODE_ENV === 'production') {
     saveUninitialized: true
   }));
 } else {
-  console.log('local');
   app.use(require('express-session')({
     genid: function(req) {
       return uuidv4() // use UUIDs for session IDs
@@ -169,6 +169,7 @@ if (!fs.existsSync(`${__dirname}/uploads`)){
     fs.mkdirSync(`${__dirname}/uploads`);
 }
 
+var result = findRemoveSync(`${__dirname}/uploads`, {extensions: ['.mp4', '.mp3', '.aif', '.aiff', '.wav'], limit: 100, age: {seconds: 1000*15}});
 //Write "Hello" every 500 milliseconds:
 var myInt = setInterval(function () {
   var result = findRemoveSync(`${__dirname}/uploads`, {extensions: ['.mp4', '.mp3', '.aif', '.aiff', '.wav'], limit: 100, age: {seconds: 1000*15}});
