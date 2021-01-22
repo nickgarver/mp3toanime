@@ -175,12 +175,12 @@ const FileUpload = () => {
             <a href="https://github.com/nickgarver">{message}</a>
           </Progress> }
 
-          {submitted &&
+          {submitted && !downloaded &&
           <button disabled={!ready} onClick={getVideo} className='my-btn dl-btn'> Download
             <FontAwesomeIcon className="button-space" icon={faArrowDown}/>
           </button> }
           {downloaded &&
-          <a href="https://twitter.com/intent/tweet?hashtags=mp3anime&text=i%20💖" className='my-btn'> Share
+          <a href="https://twitter.com/intent/tweet?hashtags=mp3anime&text=i%20💖" className='my-btn share-btn'> Share
             <FontAwesomeIcon className="button-space" icon={faTwitter}/>
           </a> }
 

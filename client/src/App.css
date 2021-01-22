@@ -424,6 +424,12 @@ Audio {
   position: relative !important;
   margin: 15px !important;
 }
+.share-btn{
+  z-index: 200 !important;
+  cursor: pointer;
+  position: relative !important;
+  margin: 15px !important;
+}
 
 footer {
   position: absolute;

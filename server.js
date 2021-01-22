@@ -20,19 +20,43 @@ store.on('error', function(error) {
   console.log(error);
 });
 
-app.use(require('express-session')({
-  genid: function(req) {
-    return uuidv4() // use UUIDs for session IDs
-  },
-  secret: 'keyboard cat',
-  cookie: {
-    maxAge: 1000 * 60 * 15, // 10 min
-    secure: true
-  },
-  store: store,
-  resave: true,
-  saveUninitialized: true
-}));
+if (process.env.NODE_ENV === 'production') {
+  console.log('production');
+  if (req.header('x-forwarded-proto') !== 'https')
+    res.redirect(`https://www.mp3ani.me`)
+
+  app.use(express.static('client/build'));
+
+  app.use(require('express-session')({
+    genid: function(req) {
+      return uuidv4() // use UUIDs for session IDs
+    },
+    secret: 'keyboard cat',
+    proxy: true,
+    cookie: {
+      maxAge: 1000 * 60 * 15, // 10 min
+      secure: true
+    },
+    store: store,
+    resave: true,
+    saveUninitialized: true
+  }));
+} else {
+  console.log('local');
+  app.use(require('express-session')({
+    genid: function(req) {
+      return uuidv4() // use UUIDs for session IDs
+    },
+    secret: 'keyboard cat',
+    cookie: {
+      maxAge: 1000 * 60 * 15, // 10 min
+      secure: false
+    },
+    store: store,
+    resave: true,
+    saveUninitialized: true
+  }));
+}
 
 app.use(fileUpload());
 
@@ -149,15 +173,5 @@ if (!fs.existsSync(`${__dirname}/uploads`)){
 var myInt = setInterval(function () {
   var result = findRemoveSync(`${__dirname}/uploads`, {extensions: ['.mp4', '.mp3', '.aif', '.aiff', '.wav'], limit: 100, age: {seconds: 1000*15}});
 }, 1000*15);
-
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static('client/build'));
-  app.use((req, res, next) => {
-    if (req.header('x-forwarded-proto') !== 'https')
-      res.redirect(`https://${req.header('host')}${req.url}`)
-    else
-      next()
-  })
-}
 
 app.listen(PORT, () => console.log(`Server Started at ${PORT}`));
