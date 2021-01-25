@@ -29,7 +29,7 @@ store.on('error', function(error) {
 
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static('client/build'));
-  app.set('trust proxy', 1) // trust first proxy
+  // app.set('trust proxy', 1) // trust first proxy
   app.use(require('express-session')({
     genid: function(req) {
       return uuidv4() // use UUIDs for session IDs
