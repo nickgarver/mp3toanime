@@ -1,3 +1,4 @@
+require('dotenv').config()
 const fileUpload = require('express-fileupload');
 const {FFMpegProgress} = require('ffmpeg-progress-wrapper');
 const fs = require('fs');
@@ -6,7 +7,6 @@ const express = require('express');
 var session = require('express-session')
 var MongoDBStore = require('connect-mongodb-session')(session);
 const app = express();
-const mongoUri = 'mongodb+srv://internetboy:keyboardcat1234@mp3anime.z3d8y.mongodb.net/sessions?retryWrites=true&w=majority';
 const { v4: uuidv4 } = require('uuid');
 const PORT = process.env.PORT || 5000;
 
@@ -20,7 +20,7 @@ app.use(function(req, res, next) {
 })
 
 var store = new MongoDBStore({
-  uri: mongoUri,
+  uri: process.env.DB_mongoUri,
   collection: 'mp3anime'
 });
 store.on('error', function(error) {
