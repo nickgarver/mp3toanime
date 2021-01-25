@@ -2,7 +2,6 @@ const fileUpload = require('express-fileupload');
 const {FFMpegProgress} = require('ffmpeg-progress-wrapper');
 const fs = require('fs');
 const findRemoveSync = require('find-remove');
-const { forceDomain } = require('forcedomain');
 const express = require('express');
 var session = require('express-session')
 var MongoDBStore = require('connect-mongodb-session')(session);
@@ -11,23 +10,26 @@ const mongoUri = 'mongodb+srv://internetboy:keyboardcat1234@mp3anime.z3d8y.mongo
 const { v4: uuidv4 } = require('uuid');
 const PORT = process.env.PORT || 5000;
 
+//force ssl
+app.use(function(req, res, next) {
+    if (req.get('X-Forwarded-Proto')=='https' || req.hostname == 'localhost') {
+        next();
+    } else if(req.get('X-Forwarded-Proto')!='https'){
+        res.redirect('https://' + req.hostname + req.url);
+    }
+})
+
 var store = new MongoDBStore({
   uri: mongoUri,
   collection: 'mp3anime'
 });
-
-// Catch errors
 store.on('error', function(error) {
   console.log(error);
 });
 
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static('client/build'));
-  app.use(forceDomain({
-    hostname: 'www.mp3ani.me',
-    port: PORT,
-    protocol: 'https'
-  }));
+  app.set('trust proxy', 1) // trust first proxy
   app.use(require('express-session')({
     genid: function(req) {
       return uuidv4() // use UUIDs for session IDs
@@ -108,7 +110,7 @@ app.post('/upload', (req, res) => {
       });
 
       process.once('end', (end) => {
-        console.log('ffmpeg end');
+        console.log('upload finished');
         req.session.progMsg = 'Your video is ready!';
         req.session.progAmt = 100;
         req.session.dlReady = true;

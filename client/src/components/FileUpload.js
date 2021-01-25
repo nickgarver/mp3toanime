@@ -24,7 +24,7 @@ const FileUpload = () => {
 
   const { getRootProps, getInputProps, isDragActive, isDragReject} = useDropzone({
     maxFiles: 1, // number of files,
-    accept: "audio/mpeg, audio/wav, audio/aiff",
+    accept: "audio/*",
     onDropAccepted: (acceptedFile) => {
       shuffleImage();
       setDropped(true);
@@ -36,9 +36,10 @@ const FileUpload = () => {
       );
       setTitle(acceptedFile[0].name.split(".", 1));
     },
-    onDropRejected: () => {
+    onDropRejected: (rejectFile) => {
+        console.log(rejectFile[0].file.type);
         console.log("drop rejected, do nothing.");
-    },
+    }
   })
 
   async function getProgress() {

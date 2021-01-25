@@ -35,7 +35,6 @@
     "ffmpeg": "0.0.4",
     "ffmpeg-progress-wrapper": "^2.0.1",
     "find-remove": "^2.0.3",
-    "forcedomain": "^2.2.2",
     "node-cmd": "^4.0.0",
     "r-json": "^1.2.10",
     "uuid": "^8.3.2"
