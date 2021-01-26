@@ -58,7 +58,7 @@ body {
   transition-duration: 0.2s;
 }
 
-#info-box{
+.info-box{
   z-index: 20;
   position: relative;
   width: 375px;
@@ -656,4 +656,15 @@ footer a:hover{
   transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   transform-origin: top left;
   box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+}
+
+.my-data{
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  color: #fff;
+  width: 250px;
+  height: 50px;
+  text-align: left;
+  padding: 5px;
 }

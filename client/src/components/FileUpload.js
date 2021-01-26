@@ -6,21 +6,37 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowUp, faArrowDown, faCompactDisc, faRandom, faHeart, faFire, faSadCry } from '@fortawesome/free-solid-svg-icons'
 import { faTwitter } from '@fortawesome/free-brands-svg-icons'
 
-
 const FileUpload = () => {
   let imgPick;
+  const [isLoading, setLoading] = useState(true);
   const [file, setFile] = useState({});
   const [title, setTitle] = useState('');
+  const [jobTitle, setjobTitle] = useState('');
   const [image, setImage] = useState("");
   const [color, setColor] = useState("rgba(255, 255, 255, 0.0");
   const [message, setMessage] = useState('Upload Started!');
   const [dropped, setDropped] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [ready, setReady] = useState(false);
+  const [jobActive, setjobActive] = useState(false);
   const [downloaded, setDownloaded] = useState(false);
-  const [uploadPercentage, setUploadPercentage] = useState(0);
+  const [percent, setPercent] = useState(0);
   const [gifCount, setGifCount] = useState(0);
-  let progressRefresh;
+
+  useLayoutEffect(() => {
+    axios.get("/session").then(res => {
+      setjobActive(res.data.jobActive);
+      setGifCount(res.data.gifCount);
+      setjobTitle(res.data.title);
+      if (res.data.jobActive) {
+        getData();
+      }
+      setLoading(false);
+    });
+  }, []);
+
+  const shuffleImage = async e => {
+    imgPick = Math.floor(Math.random() * gifCount) + 1;
+    setImage("/anime/giphy-" + imgPick.toString() + ".gif");
+  }
 
   const { getRootProps, getInputProps, isDragActive, isDragReject} = useDropzone({
     maxFiles: 1, // number of files,
@@ -42,24 +58,6 @@ const FileUpload = () => {
     }
   })
 
-  async function getProgress() {
-    const res = await axios.get('/progress');
-    if (res.data.dlReady || res.data.progMsg === 'Error') {
-      clearInterval(progressRefresh);
-    }
-    setUploadPercentage(res.data.progAmt);
-    setMessage(res.data.progMsg);
-    setReady(res.data.dlReady);
-  }
-
-  useLayoutEffect(() => {
-  async function countGifs() {
-    const response = await axios.get('/gifCount');
-    setGifCount(response.data.gifCount)
-  }
-    countGifs()
-  }, [])
-
   useLayoutEffect(() => {
     if(!isDragActive && !isDragReject) {
       setColor("rgba(255, 255, 255, 0.0"); //none
@@ -72,78 +70,85 @@ const FileUpload = () => {
     }
   }, [isDragActive])
 
-  const shuffleImage = async e => {
-    imgPick = Math.floor(Math.random() * gifCount) + 1;
-    setImage("/anime/giphy-" + imgPick.toString() + ".gif");
+
+  const getData = () => {
+    axios({
+      url: '/progress', //your url
+      method: 'GET',
+    }).then((res) => {
+      setjobActive(res.data.jobActive);
+      setPercent(res.data.progress);
+      setMessage(res.data.message);
+      if (res.data.progress!==100) {
+        setTimeout(getData, 500);
+      }
+    });
   }
 
   const onSubmit = async e => {
-    setSubmitted(true);
+    setjobActive(true);
     e.preventDefault();
     const formData = new FormData();
     formData.append('file', file);
     formData.append('image', image);
-
-    try {
-      await axios.post('/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        },
-        timeout: 120000, //2 min
-        onUploadProgress: progressEvent => {
-          //start upload
-          setMessage('Audio Uploading')
-          setUploadPercentage(Math.min(99, parseInt(Math.round(((progressEvent.loaded * 100) / progressEvent.total) / 2))));
-          if (progressEvent.loaded === progressEvent.total) {
-            progressRefresh = setInterval(getProgress, 200);
-          }
-        }
-      });
-    } catch (err) {
-        clearInterval(progressRefresh);
-        setUploadPercentage(0);
-        setReady(false);
-        setMessage('Upload Timed out');
-    }
+    formData.append('title', title);
+    setjobTitle(title)
+    const res = await axios.post('/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      },
+      timeout: 5*1000*60, //5 min
+      onUploadProgress: progressEvent => {
+        setMessage('Audio Uploading')
+        setPercent(Math.min(50, parseInt(Math.round((progressEvent.loaded * 100 / progressEvent.total) / 2))));
+      }
+    });
+    setMessage(res.data.message);
+    setPercent(res.data.progress);
+    setTimeout(getData, 500);
   };
 
-  const getVideo = async e => {
+  const download = async e => {
     axios({
       url: '/download', //your url
       method: 'GET',
       responseType: 'blob', // important
-    }).then((response) => {
-       const url = window.URL.createObjectURL(response.data);
-       const link = document.createElement('a');
-       link.href = url;
-       link.setAttribute('download', `${title}.mp4`); //or any other extension
-       document.body.appendChild(link);
-       link.click();
-       setReady(false);
-       setDownloaded(true);
+    }).then((res) => {
+      if (res.data.message === 'timeout') {
+        setMessage('session timeout, please reupload <3');
+        setPercent(0);
+      } else {
+        const url = window.URL.createObjectURL(res.data);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `${jobTitle}.mp4`); //or any other extension
+        document.body.appendChild(link);
+        link.click();
+        setDownloaded(true);
+      }
     });
+  }
+
+  if (isLoading) {
+    return <div className="App">Loading...</div>;
   }
 
   return (
     <Fragment>
-      {!submitted && <Fragment>
-      <div id='file-dropzone' style={{backgroundColor: color}} {...getRootProps({})}>
-        <input form="myForm" id='customFile' {...getInputProps()} />
-          <label className='custom-file-label' htmlFor="customFile">
-            {!isDragActive && !isDragReject && "Drop audio here!"}
-            {isDragActive && !isDragReject &&  "Drop it like it's hot!"}
-            {isDragActive && isDragReject &&   "Please use mp3, wav, or aiff"}
-          </label>
-          {!isDragActive && !isDragReject && <FontAwesomeIcon icon={faCompactDisc} size="6x" />}
-          {isDragActive && !isDragReject &&  <FontAwesomeIcon icon={faFire} size="6x" />}
-          {isDragActive && isDragReject &&   <FontAwesomeIcon icon={faSadCry} size="6x" />}
-      </div>
-      </Fragment>}
-
-      {dropped && <Fragment>
-        <div id="info-box">
-          {!submitted &&
-          <Fragment>
+      {!jobActive && <Fragment>
+        <div id='file-dropzone' style={{backgroundColor: color}} {...getRootProps({})}>
+          <input form="myForm" id='customFile' {...getInputProps()} />
+            <label className='custom-file-label' htmlFor="customFile">
+              {!isDragActive && !isDragReject && "Drop audio here!"}
+              {isDragActive && !isDragReject &&  "Drop it like it's hot!"}
+              {isDragActive && isDragReject &&   "Please use mp3, wav, or aiff"}
+            </label>
+            {!isDragActive && !isDragReject && <FontAwesomeIcon icon={faCompactDisc} size="6x" />}
+            {isDragActive && !isDragReject &&  <FontAwesomeIcon icon={faFire} size="6x" />}
+            {isDragActive && isDragReject &&   <FontAwesomeIcon icon={faSadCry} size="6x" />}
+        </div>
+        {dropped && <Fragment>
+          <div className="info-box">
             <form id="myForm" onSubmit={onSubmit}>
               <h2>
                   <FontAwesomeIcon className="button-space" icon={faHeart} size="1x"/>
@@ -169,22 +174,25 @@ const FileUpload = () => {
               <FontAwesomeIcon className="button-space" icon={faArrowUp}/>
               </button>
             </form>
-          </Fragment> }
+          </div>
+        </Fragment>}
+      </Fragment>}
 
-          {submitted &&
-          <Progress percentage={uploadPercentage} message={message}>
+      {jobActive && <Fragment>
+        <div className="info-box">
+          <Progress percentage={percent} message={message}>
             <a href="https://github.com/nickgarver">{message}</a>
-          </Progress> }
+          </Progress>
 
-          {submitted && !downloaded &&
-          <button disabled={!ready} onClick={getVideo} className='my-btn dl-btn'> Download
+          {!downloaded &&
+          <button disabled={percent!==100} onClick={download} className='my-btn dl-btn'> Download
             <FontAwesomeIcon className="button-space" icon={faArrowDown}/>
           </button> }
+
           {downloaded &&
           <a href="https://twitter.com/intent/tweet?hashtags=mp3anime&text=i%20💖" className='my-btn share-btn'> Share
             <FontAwesomeIcon className="button-space" icon={faTwitter}/>
           </a> }
-
         </div>
       </Fragment>}
     </Fragment>
