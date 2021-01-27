@@ -48,7 +48,6 @@ const FileUpload = () => {
   const { getRootProps, getInputProps, isDragActive, isDragReject} = useDropzone({
     maxFiles: 1, // number of files,
     accept: "audio/mpeg, audio/wav, audio/aif, audio/aiff, .mp3, .wav, .aif, .aiff, audio/*",
-    minSize: 50000,
     maxSize: 50000000,
     multiple: false,
     onDropAccepted: (acceptedFile) => {
@@ -132,11 +131,11 @@ const FileUpload = () => {
         const url = window.URL.createObjectURL(res.data);
         const link = document.createElement('a');
         link.href = url;
-        setMessage('Upload another if you want! :)');
-        toast.dark("Help this server stay alive with links below. <3 thx!");
         link.setAttribute('download', `${jobTitle}.mp4`); //or any other extension
         document.body.appendChild(link);
         link.click();
+        setMessage('Upload another if you want! :)');
+        toast.dark("Help this server stay alive with links below. <3 thx!");
         setDownloaded(true);
       }
     });
