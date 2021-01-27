@@ -212,6 +212,6 @@ if (!fs.existsSync(`${__dirname}/uploads`)){
 
 var myInt = setInterval(function () {
   var result = findRemoveSync(`${__dirname}/uploads`, {extensions: ['.mp4', '.mp3', '.aif', '.aiff', '.wav'], limit: 100, age: {seconds: 1000*15}});
-}, 1000*60*30);
+}, 1000*60*5);
 
 app.listen(PORT, () => console.log(`Server Started at ${PORT}`));
