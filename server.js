@@ -122,16 +122,24 @@ app.get('/progress', (req, res) => {
 
 app.get('/session', (req, res) => {
   const gifCount = fs.readdirSync(`${__dirname}/client/public/anime`).length;
-  res.json({
-    sessionID: req.sessionID,
-    jobActive: req.session.jobActive,
-    gifCount: gifCount,
-    title: req.session.title
-  });
+  if (!fs.existsSync(req.session.videoPath) && req.session.jobActive) {
+    //usually error
+    req.session.jobActive = false;
+    res.json({
+      jobActive: req.session.jobActive,
+      gifCount: gifCount,
+      title: "not set"
+    });
+  } else {
+    res.json({
+      jobActive: req.session.jobActive,
+      gifCount: gifCount,
+      title: req.session.title
+    });
+  }
 });
 
 app.get('/download', (req, res) => {
-  console.log(req);
   if (req.sessionID === undefined) {
     res.json({
       message: 'timeout',
@@ -166,13 +174,14 @@ function ffmpegStart(req, res) {
     });
 
     process.on('uncaughtException', (e) => {
-      req.session.message = 'Error';
+      req.session.jobActive = false;
+      req.session.message = 'Video creation error';
       req.session.progress = 0;
       console.log('ffmpeg uncaughtException: ' + e);
     });
 
     process.once('end', (end) => {
-      req.session.message = 'Your video, '+req.session.title+' is ready!';
+      req.session.message = req.session.title + ' is ready 4 download!';
       req.session.progress = 100;
       req.session.touch();
       req.session.save(function(err) {

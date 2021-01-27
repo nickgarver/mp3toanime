@@ -4,7 +4,7 @@ import './App.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTwitter, faInstagram } from '@fortawesome/free-brands-svg-icons'
 import { faDonate, faBug, faQuestionCircle } from '@fortawesome/free-solid-svg-icons'
-const helpMsg = "Hello, welcome to Mp3 Anime!\n\nThis is a shitty app internetboy built \nto share audio on twitter.\n\nJust drop some audio, pick your gif, and hit upload.  When it's done you can download it, and share to twitter!\n\n(or whatever lol)";
+const helpMsg = "Hello, welcome to Mp3 Anime!\n\nThis is an app internetboy built \nto share audio on twitter.\n\nJust drop some audio, pick your gif, \nand hit upload.  When it's done you\ncan download it and share to twitter!\n\n Enjoy!\n @internetboy";
 
 const App = () => (
   <div className="App min-h-screen text-blue-200 d-flex align-items-center justify-content-center">

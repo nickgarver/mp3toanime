@@ -22,15 +22,19 @@ const FileUpload = () => {
   const [gifCount, setGifCount] = useState(0);
 
   useLayoutEffect(() => {
-    axios.get("/session").then(res => {
-      setjobActive(res.data.jobActive);
-      setGifCount(res.data.gifCount);
-      setjobTitle(res.data.title);
-      if (res.data.jobActive) {
-        getData();
-      }
-      setLoading(false);
-    });
+    axios.get("/session")
+      .then(res => {
+        setjobActive(res.data.jobActive);
+        setGifCount(res.data.gifCount);
+        setjobTitle(res.data.title);
+        if (res.data.jobActive) {
+          getData();
+        }
+        setLoading(false);
+      })
+      .catch(error => {
+        console.error('session rejection: ' + error.message);
+      })
   }, []);
 
   const shuffleImage = async e => {
@@ -121,6 +125,7 @@ const FileUpload = () => {
         const url = window.URL.createObjectURL(res.data);
         const link = document.createElement('a');
         link.href = url;
+        setMessage('Refresh to upload a new song.\nHelp this server stay alive below! :)');
         link.setAttribute('download', `${jobTitle}.mp4`); //or any other extension
         document.body.appendChild(link);
         link.click();
@@ -130,8 +135,15 @@ const FileUpload = () => {
   }
 
   if (isLoading) {
-    return <div className="App">Loading...</div>;
-  }
+    return (
+      <Fragment>
+      <div className="lds-ellipsis">
+        <div></div><div></div>
+        <div></div><div></div>
+      </div>
+      </Fragment>
+    );
+  };
 
   return (
     <Fragment>
