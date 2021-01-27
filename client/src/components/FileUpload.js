@@ -40,7 +40,7 @@ const FileUpload = () => {
 
   const { getRootProps, getInputProps, isDragActive, isDragReject} = useDropzone({
     maxFiles: 1, // number of files,
-    accept: "audio/*",
+    accept: "audio/*, audio/mpeg, audio/wav, audio/aiff",
     onDropAccepted: (acceptedFile) => {
       shuffleImage();
       setDropped(true);
