@@ -5,6 +5,8 @@ import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowUp, faArrowDown, faCompactDisc, faRandom, faHeart, faFire, faSadCry } from '@fortawesome/free-solid-svg-icons'
 import { faTwitter } from '@fortawesome/free-brands-svg-icons'
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const FileUpload = () => {
   let imgPick;
@@ -24,6 +26,7 @@ const FileUpload = () => {
   useLayoutEffect(() => {
     axios.get("/session")
       .then(res => {
+        toast.dark("Welcome to Mp3 Anime! Drop some audio or click '?' if you want to know more.");
         setjobActive(res.data.jobActive);
         setGifCount(res.data.gifCount);
         setjobTitle(res.data.title);
@@ -33,7 +36,7 @@ const FileUpload = () => {
         setLoading(false);
       })
       .catch(error => {
-        console.error('session rejection: ' + error.message);
+        toast.dark("Session Error");
       })
   }, []);
 
@@ -44,7 +47,10 @@ const FileUpload = () => {
 
   const { getRootProps, getInputProps, isDragActive, isDragReject} = useDropzone({
     maxFiles: 1, // number of files,
-    accept: "audio/*, audio/mpeg, audio/wav, audio/aiff",
+    accept: "audio/mpeg, audio/wav, audio/aif, audio/aiff, .mp3, .wav, .aif, .aiff, audio/*",
+    minSize: 50000,
+    maxSize: 50000000,
+    multiple: false,
     onDropAccepted: (acceptedFile) => {
       shuffleImage();
       setDropped(true);
@@ -57,8 +63,8 @@ const FileUpload = () => {
       setTitle(acceptedFile[0].name.split(".", 1));
     },
     onDropRejected: (rejectFile) => {
-        console.log(rejectFile[0].file.type);
-        console.log("drop rejected, do nothing.");
+      toast.dark("Only 50mb audio files please :)");
+      console.log(rejectFile[0].file.type);
     }
   })
 
@@ -90,6 +96,7 @@ const FileUpload = () => {
   }
 
   const onSubmit = async e => {
+    toast.dark("Song processing, scroll on twitter and come back like 1 minute.");
     setjobActive(true);
     e.preventDefault();
     const formData = new FormData();
@@ -125,7 +132,8 @@ const FileUpload = () => {
         const url = window.URL.createObjectURL(res.data);
         const link = document.createElement('a');
         link.href = url;
-        setMessage('Refresh to upload a new song.\nHelp this server stay alive below! :)');
+        setMessage('Upload another if you want! :)');
+        toast.dark("Help this server stay alive with links below. <3 thx!");
         link.setAttribute('download', `${jobTitle}.mp4`); //or any other extension
         document.body.appendChild(link);
         link.click();
@@ -147,6 +155,9 @@ const FileUpload = () => {
 
   return (
     <Fragment>
+      <div>
+        <ToastContainer position="top-left"></ToastContainer>
+      </div>
       {!jobActive && <Fragment>
         <div id='file-dropzone' style={{backgroundColor: color}} {...getRootProps({})}>
           <input form="myForm" id='customFile' {...getInputProps()} />
@@ -182,7 +193,7 @@ const FileUpload = () => {
               </div>
 
               <button form="myForm" type='submit' value='Upload' className='my-btn'>
-              Upload
+              Create
               <FontAwesomeIcon className="button-space" icon={faArrowUp}/>
               </button>
             </form>
@@ -193,7 +204,7 @@ const FileUpload = () => {
       {jobActive && <Fragment>
         <div className="info-box">
           <Progress percentage={percent} message={message}>
-            <a href="https://github.com/nickgarver">{message}</a>
+            <a href="/">{message}</a>
           </Progress>
 
           {!downloaded &&

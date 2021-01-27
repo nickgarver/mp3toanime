@@ -332,10 +332,10 @@ Audio {
     text-align: center;
     text-overflow: ellipsis;
     color: rgb(var(--pure-material-onprimary-rgb, 255, 255, 255));
-    color: rgba(0, 0, 0, 0.87);
+    color: rgba(0, 0, 0, 1);
     background-color: #36A1E5;
     font-family: 'Noto Sans JP', sans-serif;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 600;
     line-height: 36px;
     overflow: hidden;

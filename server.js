@@ -39,7 +39,7 @@ if (process.env.NODE_ENV === 'production') {
     secret: 'keyboard cat',
     proxy: true,
     cookie: {
-      maxAge: 1000 * 60 * 15, // 15 min
+      maxAge: 1000 * 60 * 10, // 10 min
       secure: true
     },
     store: store,
@@ -53,7 +53,7 @@ if (process.env.NODE_ENV === 'production') {
     },
     secret: 'keyboard cat',
     cookie: {
-      maxAge: 1000 * 60 * 15, // 15 min
+      maxAge: 1000 * 60 * 10, // 10 min
       secure: false
     },
     store: store,
@@ -105,7 +105,6 @@ app.post('/upload', (req, res) => {
 
 app.get('/progress', (req, res) => {
   if (req.session.progress === undefined){
-    console.log('progress undefined');
     res.json({
       jobActive: true,
       progress: 50,
@@ -156,7 +155,7 @@ app.get('/download', (req, res) => {
 
 function ffmpegStart(req, res) {
   ( async () => {
-    const process = new FFMpegProgress(['-i', req.session.audioPath, '-ignore_loop', '0', '-i', req.session.photoPath, '-vf', "pad=ceil(iw/2)*2:ceil(ih/2)*2", '-shortest', '-strict', '-2', '-c:v', 'libx264', '-threads', '5', '-c:a', 'aac', '-b:a', '192k', '-pix_fmt', 'yuv420p', '-shortest', req.session.videoPath]);
+    const process = new FFMpegProgress(['-i', req.session.audioPath, '-ignore_loop', '0', '-i', req.session.photoPath, '-vf', "pad=ceil(iw/2)*2:ceil(ih/2)*2", '-shortest', '-strict', '-2', '-c:v', 'libx264', '-threads', '6', '-c:a', 'aac', '-b:a', '192k', '-pix_fmt', 'yuv420p', '-shortest', '-crf', '26', req.session.videoPath]);
     process.once('details', (details) => {
       tFrames = details.duration * details.fps;
     });
@@ -165,6 +164,9 @@ function ffmpegStart(req, res) {
       req.session.progress = Math.min(99, Math.round(50 + ((Number(progress.frame) / tFrames) *100) / 2));
       if (req.session.progress > 80) {
         req.session.message = 'Almost finished!'
+      }
+      if (req.session.progress == 99) {
+        req.session.message = 'So close to being ready'
       }
       req.session.save(function(err) {
         if (err) {
@@ -209,7 +211,6 @@ if (!fs.existsSync(`${__dirname}/uploads`)){
 }
 
 var myInt = setInterval(function () {
-  console.log('files deleted!');
   var result = findRemoveSync(`${__dirname}/uploads`, {extensions: ['.mp4', '.mp3', '.aif', '.aiff', '.wav'], limit: 100, age: {seconds: 1000*15}});
 }, 1000*60*30);
 

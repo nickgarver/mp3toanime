@@ -39,8 +39,8 @@ const Progress = ({ percentage,message }) => {
         },
       }}
     >
-    <strong href="https://github.com/nickgarver" style={{ fontSize: 40, color: '#fefefe' }} >{percentage}%</strong>
-    <a href="https://github.com/nickgarver" style={{ fontSize: 15, color: '#fefefe' }}>{message}</a>
+    <strong href="/" style={{ fontSize: 40, color: '#fefefe' }} >{percentage}%</strong>
+    <a href="/" style={{ fontSize: 15, color: '#fefefe' }}>{message}</a>
     </CircularProgressbarWithChildren>
   );
 };
