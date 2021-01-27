@@ -8,16 +8,10 @@
 		"@fortawesome/free-solid-svg-icons": "^5.15.1",
 		"@fortawesome/react-fontawesome": "^0.1.14",
 		"axios": "^0.18.0",
-		"immutable": "^4.0.0-rc.12",
-		"node-sass": "^5.0.0",
 		"react": "^16.8.6",
-		"react-audio-player": "^0.14.0",
 		"react-circular-progressbar": "^2.0.3",
 		"react-dom": "^16.8.6",
 		"react-dropzone": "^11.2.4",
-		"react-scripts": "2.1.8",
-		"react-scroll": "^1.8.1",
-		"react-tag-box": "^1.6.0",
 		"react-toastify": "^7.0.0"
 	},
 	"scripts": {

@@ -26,7 +26,7 @@ const FileUpload = () => {
   useLayoutEffect(() => {
     axios.get("/session")
       .then(res => {
-        toast.dark("Welcome to Mp3 Anime! Drop some audio or click '?' if you want to know more.");
+        toast.dark("Welcome to Mp3 Anime. Drop some audio and make a video!");
         setjobActive(res.data.jobActive);
         setGifCount(res.data.gifCount);
         setjobTitle(res.data.title);
