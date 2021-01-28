@@ -47,7 +47,7 @@ const FileUpload = () => {
 
   const { getRootProps, getInputProps, isDragActive, isDragReject} = useDropzone({
     maxFiles: 1, // number of files,
-    accept: "audio/mpeg, audio/wav, audio/aif, audio/aiff, .mp3, .wav, .aif, .aiff, audio/*",
+    accept: "audio/mpeg, audio/m4a, audio/wav, audio/aif, audio/aiff, .m4a, .wav, .mp3, .aiff, .aif",
     maxSize: 50000000,
     multiple: false,
     onDropAccepted: (acceptedFile) => {
@@ -203,7 +203,7 @@ const FileUpload = () => {
       {jobActive && <Fragment>
         <div className="info-box">
           <Progress percentage={percent} message={message}>
-            <a href="/">{message}</a>
+            <a aria-label="upload message" href="/">{message}</a>
           </Progress>
 
           {!downloaded &&
@@ -212,7 +212,7 @@ const FileUpload = () => {
           </button> }
 
           {downloaded &&
-          <a href="https://twitter.com/intent/tweet?hashtags=mp3anime&text=i%20💖" className='my-btn share-btn'> Share
+          <a aria-label="tweet video" href="https://twitter.com/intent/tweet?hashtags=mp3anime&text=i%20💖" className='my-btn share-btn'> Share
             <FontAwesomeIcon className="button-space" icon={faTwitter}/>
           </a> }
         </div>
