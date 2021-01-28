@@ -119,6 +119,7 @@ const FileUpload = () => {
   };
 
   const download = async e => {
+    toast.dark("Downloading, give me a second!");
     axios({
       url: '/download', //your url
       method: 'GET',
