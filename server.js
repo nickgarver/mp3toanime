@@ -155,7 +155,12 @@ app.get('/download', (req, res) => {
 
 function ffmpegStart(req, res) {
   ( async () => {
-    const process = new FFMpegProgress(['-i', req.session.audioPath, '-ignore_loop', '0', '-i', req.session.photoPath, '-vf', "pad=ceil(iw/2)*2:ceil(ih/2)*2", '-shortest', '-strict', '-2', '-c:v', 'libx264', '-threads', '6', '-c:a', 'aac', '-b:a', '192k', '-pix_fmt', 'yuv420p', '-shortest', '-crf', '27','-preset','veryfast', req.session.videoPath]);
+
+    //meme
+    //'-y', '-i', req.session.audioPath, '-ignore_loop', '0', '-i', req.session.photoPath, '-vf', "scale=720:trunc(ow/a/2)*2", '-shortest', '-strict', '-2', '-c:v', 'libx264', '-threads', '6', '-c:a', 'aac', '-b:a', '256k', '-filter_complex stereotools=level_in=15:softclip=1,acompressor=level_in=1:makeup=2,asetrate=44100*1.0,aresample=44100', '-pix_fmt', 'yuv420p', '-crf', '45', '-preset', 'ultrafast', '-profile:v', 'baseline', '-t', '140', '-fs', '50M', req.session.videoPath
+
+    //good
+    const process = new FFMpegProgress(['-y', '-i', req.session.audioPath, '-ignore_loop', '0', '-i', req.session.photoPath, '-vf', "scale=720:trunc(ow/a/2)*2", '-shortest', '-strict', '-2', '-c:v', 'libx264', '-threads', '6', '-c:a', 'aac', '-b:a', '256k', '-pix_fmt', 'yuv420p', '-crf', '28', '-preset', 'faster', '-profile:v', 'baseline', '-t', '140', '-fs', '50M', req.session.videoPath]);
     process.once('details', (details) => {
       tFrames = details.duration * details.fps;
     });

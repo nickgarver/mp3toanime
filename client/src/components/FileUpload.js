@@ -119,7 +119,6 @@ const FileUpload = () => {
   };
 
   const download = async e => {
-    toast.dark("Downloading, give me a second!");
     axios({
       url: '/download', //your url
       method: 'GET',
@@ -169,6 +168,9 @@ const FileUpload = () => {
             {!isDragActive && !isDragReject && <FontAwesomeIcon icon={faCompactDisc} size="6x" />}
             {isDragActive && !isDragReject &&  <FontAwesomeIcon icon={faFire} size="6x" />}
             {isDragActive && isDragReject &&   <FontAwesomeIcon icon={faSadCry} size="6x" />}
+            <label className='custom-file-label small' htmlFor="customFile">
+            {!isDragActive && "50 MB max."}
+            </label>
         </div>
         {dropped && <Fragment>
           <div className="info-box">
