@@ -8,6 +8,7 @@
 		"@fortawesome/free-solid-svg-icons": "^5.15.1",
 		"@fortawesome/react-fontawesome": "^0.1.14",
 		"axios": "^0.18.0",
+		"file-saver": "^2.0.5",
 		"immutable": "^4.0.0-rc.12",
 		"node-sass": "^5.0.0",
 		"react": "^16.8.6",

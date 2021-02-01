@@ -14,6 +14,7 @@ const renderLoader = () => (
 
 const App = () => (
   <div className="App min-h-screen text-blue-200 d-flex align-items-center justify-content-center">
+    <img id="poweredby" src={process.env.PUBLIC_URL + '/Poweredby_640px-Black_VertLogo.png'} alt="powered by giphy" />
     <button aria-label="help button" help-msg={helpMsg} className="help-btn"><FontAwesomeIcon className="socials-icn" icon={faQuestionCircle} /></button>
     <Suspense fallback={renderLoader()}>
       <FileUpload id="file-upload" />
@@ -21,7 +22,7 @@ const App = () => (
     <footer>
       <div className="footer-info">
         <a data-tooltip="Home" href="/" >
-          Mp3 Anime 2021 ©{' '}
+          MP3 Anime 2021 ©{' '}
         </a>
       </div>
       <div className="footer-socials">

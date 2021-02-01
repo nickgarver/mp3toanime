@@ -36,6 +36,9 @@
     "ffmpeg": "0.0.4",
     "ffmpeg-progress-wrapper": "^2.0.1",
     "find-remove": "^2.0.3",
+    "giphy-api": "^2.0.1",
+    "image-downloader": "^4.0.2",
+    "mongodb": "^3.6.3",
     "node-cmd": "^4.0.0",
     "r-json": "^1.2.10",
     "uuid": "^8.3.2"

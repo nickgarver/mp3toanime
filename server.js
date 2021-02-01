@@ -2,10 +2,13 @@ require('dotenv').config()
 const fileUpload = require('express-fileupload');
 const {FFMpegProgress} = require('ffmpeg-progress-wrapper');
 const fs = require('fs');
+const download = require('image-downloader')
 const findRemoveSync = require('find-remove');
 const express = require('express');
-var session = require('express-session')
+var session = require('express-session');
+
 var MongoDBStore = require('connect-mongodb-session')(session);
+var giphy = require('giphy-api')('PQ689JPnDjFooVH1IacoquhmmUYjukUQ');
 const app = express();
 const { v4: uuidv4 } = require('uuid');
 const PORT = process.env.PORT || 5000;
@@ -22,8 +25,9 @@ app.use(function(req, res, next) {
 //setup mongodb
 var store = new MongoDBStore({
   uri: process.env.DB_mongoUri,
-  collection: 'mp3anime'
+  collection: 'test'
 });
+
 store.on('error', function(error) {
   console.log(error);
 });
@@ -64,17 +68,18 @@ if (process.env.NODE_ENV === 'production') {
 
 app.use(fileUpload());
 
-// Upload Endpoint
 app.post('/upload', (req, res) => {
   if (req.files === null) {
     return res.status(400).json({ msg: 'No file uploaded'});
   }
   req.session.progress = 51;
   req.session.jobActive = true;
-  req.session.message = 'Making cute video :-)';
   req.session.title = req.body.title;
+  req.session.gifUrl = req.body.gif;
+  req.session.meme = req.body.meme;
+  req.session.message = 'Making your video! :-)';
   req.session.audioPath = `${__dirname}/uploads/audio_${req.sessionID}`;
-  req.session.photoPath = `${__dirname}/client/public` + req.body.image;
+  req.session.gifPath = `${__dirname}/uploads/image_${req.sessionID}.gif`;
   req.session.videoPath = `${__dirname}/uploads/out_${req.sessionID}.mp4`;
   if (fs.existsSync(req.session.videoPath)) {
       fs.unlinkSync(req.session.videoPath);
@@ -82,11 +87,11 @@ app.post('/upload', (req, res) => {
   if (fs.existsSync(req.session.audioPath)) {
       fs.unlinkSync(req.session.audioPath);
   }
-  req.session.touch();
+  if (fs.existsSync(req.session.gifPath)) {
+      fs.unlinkSync(req.session.gifPath);
+  }
   req.session.save(function(err) {
-    if (err) {
-      console.log(err);
-    }
+    if (err) console.log(err);
   })
   let tFrames = '';
   const file = req.files.file;
@@ -95,11 +100,11 @@ app.post('/upload', (req, res) => {
     if (err) {
       return res.status(500).send(err);
     }
-    ffmpegStart(req, res);
     res.json({
       progress: req.session.progress,
       message:  req.session.message,
     });
+    downloadImage(req.sessionID);
   });
 });
 
@@ -110,32 +115,43 @@ app.get('/progress', (req, res) => {
       progress: 50,
       message: "session undefined"
     });
-  } else {
-    res.json({
-      jobActive: req.session.jobActive,
-      progress: req.session.progress,
-      message: req.session.message
-    });
   }
+  res.json({
+    jobActive: req.session.jobActive,
+    progress: req.session.progress,
+    message: req.session.message
+  });
 });
 
 app.get('/session', (req, res) => {
-  const gifCount = fs.readdirSync(`${__dirname}/client/public/anime`).length;
   if (!fs.existsSync(req.session.videoPath) && req.session.jobActive) {
     //usually error
     req.session.jobActive = false;
     res.json({
       jobActive: req.session.jobActive,
-      gifCount: gifCount,
       title: "not set"
     });
   } else {
+    req.session.user = req.headers['user-agent'];
     res.json({
       jobActive: req.session.jobActive,
-      gifCount: gifCount,
       title: req.session.title
     });
   }
+});
+
+app.post('/giphySearch', (req, res) => {
+  giphy.search({
+    q: req.body.search,
+    limit: 20
+  })
+  .then((gifs) => {
+    req.session.search = req.body.search;
+    res.json({
+      gifList: gifs
+    });
+  })
+  .catch((e) => console.log(e));
 });
 
 app.get('/download', (req, res) => {
@@ -153,62 +169,68 @@ app.get('/download', (req, res) => {
   }
 });
 
-function ffmpegStart(req, res) {
+function downloadImage(myID) {
+  store.get(myID,function(err,session){
+    if (err) throw err;
+    download.image({
+      url: session.gifUrl,
+      dest: session.gifPath
+    })
+    .then(() => {
+      ffmpegStart(myID, session.meme, session.audioPath, session.gifPath, session.videoPath);
+    })
+    .catch((e) => console.error(e));
+  });
+}
+
+function ffmpegStart(myID,meme,audioPath,gifPath,videoPath) {
   ( async () => {
-
-    //meme
-    //'-y', '-i', req.session.audioPath, '-ignore_loop', '0', '-i', req.session.photoPath, '-vf', "scale=720:trunc(ow/a/2)*2", '-shortest', '-strict', '-2', '-c:v', 'libx264', '-threads', '6', '-c:a', 'aac', '-b:a', '256k', '-filter_complex stereotools=level_in=15:softclip=1,acompressor=level_in=1:makeup=2,asetrate=44100*1.0,aresample=44100', '-pix_fmt', 'yuv420p', '-crf', '45', '-preset', 'ultrafast', '-profile:v', 'baseline', '-t', '140', '-fs', '50M', req.session.videoPath
-
-    //good
-    const process = new FFMpegProgress(['-y', '-i', req.session.audioPath, '-ignore_loop', '0', '-i', req.session.photoPath, '-vf', "scale=720:trunc(ow/a/2)*2", '-shortest', '-strict', '-2', '-c:v', 'libx264', '-threads', '6', '-c:a', 'aac', '-b:a', '256k', '-pix_fmt', 'yuv420p', '-crf', '28', '-preset', 'faster', '-profile:v', 'baseline', '-t', '140', '-fs', '50M', req.session.videoPath]);
+    let command = [];
+    if (meme === 'true') {
+      command = ['-y', '-i', audioPath, '-ignore_loop', '0', '-i',
+      gifPath, '-vf', "amplify=radius=5:factor=30000,hue=s=7:b=4,scale=720:trunc(ow/a/2)*2", '-shortest', '-strict', '-2', '-c:v', 'libx264', '-threads', '6', '-c:a', 'aac', '-b:a', '128k', '-filter_complex', 'stereotools=level_in=15:softclip=1,acompressor=level_in=1:makeup=2,asetrate=44100*1.0,aresample=44100', '-pix_fmt', 'yuv420p', '-crf', '51', '-preset', 'ultrafast', '-profile:v', 'baseline', '-t', '140', '-fs', '50M', videoPath];
+    } else {
+      command = ['-y', '-i', audioPath, '-ignore_loop', '0', '-i',
+      gifPath, '-vf', "scale=720:trunc(ow/a/2)*2", '-shortest', '-strict', '-2', '-c:v', 'libx264', '-threads', '6', '-c:a', 'aac', '-b:a', '256k', '-pix_fmt', 'yuv420p', '-crf', '28', '-preset', 'faster', '-profile:v', 'baseline', '-t', '140', '-fs', '50M', videoPath]
+    }
+    const process = new FFMpegProgress(command);
     process.once('details', (details) => {
       tFrames = details.duration * details.fps;
     });
 
     process.on('progress', (progress) => {
-      req.session.progress = Math.min(99, Math.round(50 + ((Number(progress.frame) / tFrames) *100) / 2));
-      if (req.session.progress > 80) {
-        req.session.message = 'Almost finished!'
-      }
-      if (req.session.progress == 99) {
-        req.session.message = 'So close to being ready'
-      }
-      req.session.save(function(err) {
-        if (err) {
-          console.log(err);
-        }
-      })
-    });
-
-    process.on('uncaughtException', (e) => {
-      req.session.jobActive = false;
-      req.session.message = 'Video creation error';
-      req.session.progress = 0;
-      console.log('ffmpeg uncaughtException: ' + e);
+      store.get(myID,function(err,session){
+        if (err) throw err;
+        session.progress = Math.min(99, Math.round(50 + ((Number(progress.frame) / tFrames) *100) / 2));
+        if (session.progress > 80) session.message = 'Almost finished!';
+        if (session.progress == 99) session.message = 'So close to being ready';
+        store.set(myID, session, function(err) { if (err) throw err; })
+      });
     });
 
     process.once('end', (end) => {
-      req.session.message = req.session.title + ' is ready!';
-      req.session.progress = 100;
-      req.session.touch();
-      req.session.save(function(err) {
-        if (err) {
-          console.log(err);
-        }
+      store.get(myID,function(err,session){
+        session.message = session.title + ' is ready!';
+        session.progress = 100;
+        store.set(myID, session, function(err) { if (err) throw err; })
       })
-      res.end();
-      //delete audio
-      fs.unlink(req.session.audioPath, (err) => {
-        if (err) {
-          console.error(err)
-          return
-        }
-      });
+      fs.unlink(audioPath, (err) => { if (err) throw err; });
+      fs.unlink(gifPath, (err) => { if (err) throw err; });
     });
 
     await process.onDone();
 
-  })();
+  })()
+  .catch((e) => {
+    console.error('weird ffmpeg error');
+    store.get(myID,function(err,session){
+      if (err) throw err;
+      session.jobActive = false;
+      session.message = 'Video creation error';
+      session.progress = 0;
+      store.set(myID, session, function(err) { if (err) throw err; })
+    })
+  });
 }
 
 if (!fs.existsSync(`${__dirname}/uploads`)){
@@ -216,7 +238,7 @@ if (!fs.existsSync(`${__dirname}/uploads`)){
 }
 
 var myInt = setInterval(function () {
-  var result = findRemoveSync(`${__dirname}/uploads`, {extensions: ['.mp4', '.mp3', '.aif', '.aiff', '.wav'], limit: 100, age: {seconds: 1000*15}});
+  var result = findRemoveSync(`${__dirname}/uploads`, {extensions: ['.mp4', '.mp3', '.aif', '.aiff', '.wav', '.gif'], limit: 100, age: {seconds: 1000*10}});
 }, 1000*60*5);
 
-app.listen(PORT, () => console.log(`Server Started at ${PORT}`));
+app.listen(PORT, () => console.log(`Server Started at ${PORT}`))
