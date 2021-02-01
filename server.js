@@ -72,7 +72,7 @@ app.post('/upload', (req, res) => {
   if (req.files === null) {
     return res.status(400).json({ msg: 'No file uploaded'});
   }
-  req.session.progress = 51;
+  req.session.progress = 50;
   req.session.jobActive = true;
   req.session.title = req.body.title;
   req.session.gif = req.body.gif;
