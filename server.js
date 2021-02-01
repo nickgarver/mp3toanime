@@ -25,7 +25,7 @@ app.use(function(req, res, next) {
 //setup mongodb
 var store = new MongoDBStore({
   uri: process.env.DB_mongoUri,
-  collection: 'test'
+  collection: 'mp3anime'
 });
 
 store.on('error', function(error) {
@@ -75,7 +75,7 @@ app.post('/upload', (req, res) => {
   req.session.progress = 51;
   req.session.jobActive = true;
   req.session.title = req.body.title;
-  req.session.gifUrl = req.body.gif;
+  req.session.gif = req.body.gif;
   req.session.meme = req.body.meme;
   req.session.message = 'Making your video! :-)';
   req.session.audioPath = `${__dirname}/uploads/audio_${req.sessionID}`;
@@ -125,17 +125,28 @@ app.get('/progress', (req, res) => {
 
 app.get('/session', (req, res) => {
   if (!fs.existsSync(req.session.videoPath) && req.session.jobActive) {
-    //usually error
+    // Error: no video and the job is active
     req.session.jobActive = false;
-    res.json({
-      jobActive: req.session.jobActive,
-      title: "not set"
-    });
-  } else {
     req.session.user = req.headers['user-agent'];
     res.json({
       jobActive: req.session.jobActive,
-      title: req.session.title
+      title: "not set",
+      search: 'adventure time'
+    });
+  } else if (req.session.user === undefined || req.session.jobActive === undefined) {
+    // New User or Existing user and no job done before
+    req.session.user = req.headers['user-agent'];
+    res.json({
+      jobActive: null,
+      title: "default title",
+      search: 'adventure time'
+    });
+  } else {
+    // Existing user with search history
+    res.json({
+      jobActive: req.session.jobActive,
+      title: req.session.title,
+      search: req.session.search
     });
   }
 });
@@ -173,7 +184,7 @@ function downloadImage(myID) {
   store.get(myID,function(err,session){
     if (err) throw err;
     download.image({
-      url: session.gifUrl,
+      url: session.gif,
       dest: session.gifPath
     })
     .then(() => {

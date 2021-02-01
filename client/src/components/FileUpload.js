@@ -13,7 +13,7 @@ const FileUpload = () => {
   const [isLoading, setLoading] = useState(true);
   const [file, setFile] = useState({});
   const [title, setTitle] = useState('');
-  const [search, setSearch] = useState('my hero academia');
+  const [search, setSearch] = useState('');
   const [meme, setMeme] = useState(false);
   const [jobTitle, setjobTitle] = useState('');
   const [gif, setGif] = useState("");
@@ -30,11 +30,10 @@ const FileUpload = () => {
     axios.get("/session")
     .then(res => {
       toast.dark("Welcome to Mp3 Anime. Drop some audio and make a video!");
+      if (res.data.jobActive) getData();
       setjobActive(res.data.jobActive);
       setjobTitle(res.data.title);
-      if (res.data.jobActive) {
-        getData();
-      }
+      setSearch(res.data.search);
       setLoading(false);
     })
     .catch(error => {
